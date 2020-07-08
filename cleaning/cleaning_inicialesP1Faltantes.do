@@ -1,6 +1,6 @@
 //Clean inicialesP1Faltantes
 
-import delimited "$sharelatex\p1_w_p3\inp\inicialesP1Faltantes2.csv", varn(1) clear
+import delimited "$pilot3\inp\inicialesP1Faltantes2.csv", varn(1) clear
 
 *drop if exp=="NA" & junta=="NA" & anio=="NA"
 
@@ -52,11 +52,11 @@ replace fechadedemanda = "" if strpos(fechadedemanda, "-7")
 gen fechaDemanda_M = date(fechadedemanda, "DMY") 
 gen codingDate = date(fechadecaptura, "DMY")
 split fechadecaptura, p("/")
-save "$sharelatex\p1_w_p3\out\inicialesP1Faltantes.dta", replace
+save "$pilot3\out\inicialesP1Faltantes.dta", replace
 
 sort junta exp anio
 quietly by junta exp anio:  gen dup = cond(_N==1,0,_n)
 replace dup=1 if dup==0
 keep if dup==1
 
-save "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", replace
+save "$pilot3\out\inicialesP1Faltantes_wod.dta", replace
