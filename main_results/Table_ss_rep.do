@@ -423,10 +423,10 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 ********************************************************************************
 *DB: Pilot3
 
-use "$sharelatex\p1_w_p3\out\dulce_1911.dta", clear
+use "$pilot3\out\dulce_1911.dta", clear
 
-merge m:1 id_actor using "$sharelatex\DB\treatment_data.dta", keep(2 3) nogen
-merge m:1 id_actor using "$sharelatex\DB\survey_data_2m.dta", nogen keep(1 3)
+merge m:1 id_actor using "$pilot3Complete\DB\treatment_data.dta", keep(2 3) nogen
+merge m:1 id_actor using "$pilot3Complete\DB\survey_data_2m.dta", nogen keep(1 3)
 drop if missing(main_treatment) | main_treatment == 3
 
 *Variable homologation
