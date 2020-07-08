@@ -31,16 +31,16 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
 		sheet("PanelA") modify
 	*Obs
-	 sleep 50
+	 
 	qui putexcel B`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
 		sheet("PanelA") modify		
 	*Mean
-	 sleep 50
+	 
 	local mu=round(r(mean),0.01)
 	qui putexcel C`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
 		sheet("PanelA") modify			
 	*Std Dev
-	 sleep 50
+	 
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
 	
@@ -48,7 +48,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 		sheet("PanelA") modify			
 	*Range
 	local range="[`r(min)', `r(max)']"
-	 sleep 50
+	 
 	qui putexcel D`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
 		sheet("PanelA") modify			
 
@@ -56,7 +56,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	local m=`m'+2
 	}
 
-	sleep 10
+	
 
 *PANEL B (B⴩cas)
 local n=5
@@ -97,7 +97,7 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 ********************************************************************************
 	*DB: Subcourt 7 
 keep if junta==7
-	sleep 10
+	
 
  
 *PANEL A (Outcomes)
@@ -131,7 +131,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	local m=`m'+2
 	}
 
-sleep 10
+
 	
 *PANEL B (B⴩cas)
 local n=5
@@ -171,7 +171,8 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 ********************************************************************************
 	*DB: March Pilot
 use "$sharelatex\DB\pilot_operation.dta", clear
-merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(1 3) nogen
+drop if tratamientoquelestoco==0
+merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(3) nogen
 //drop if tratamientoquelestoco==3
 replace junta=7 if missing(junta)
 rename expediente exp
@@ -208,8 +209,6 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
-sleep 10
-
 *PANEL A (Outcomes)
 local n=5
 local m=6
@@ -244,7 +243,6 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	local m=`m'+2
 	}
 
-sleep 10 
 *PANEL B (B⴩cas)
 local n=5
 local m=6
@@ -438,7 +436,7 @@ foreach var in ///
 	}	
 
 
-sleep 10
+
 *PANEL A (Outcomes)
 local n=5
 local m=6
@@ -472,7 +470,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	local m=`m'+2
 	}
 
-sleep 10
+
 *PANEL B (B⴩cas)
 local n=5
 local m=6
@@ -544,7 +542,7 @@ foreach var in ///
 
 
 replace c_total = 100000
-sleep 10
+
 
 *PANEL A (Outcomes)
 local n=5
@@ -578,7 +576,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	local n=`n'+2
 	local m=`m'+2
 	}
-sleep 10
+
 
 *PANEL B (B⴩cas)
 local n=5
