@@ -11,6 +11,7 @@ global paper D:\Dropbox\Dropbox\Documentos_\Joyce_Seira\Pilot1\information_sett\
 else{
 global sharelatex E:\MCLC\Pilot 1\information_sett\Replication
 global scaleup E:\MCLC\Pilot 1\information_sett\Replication\scaleup
+global pilot3Complete "E:\MCLC\Pilot3"
 global pilot3 E:\MCLC\Pilot 1\information_sett\Replication\p1_w_p3
 global paper E:\MCLC\Pilot 1\information_sett\Replication
 }

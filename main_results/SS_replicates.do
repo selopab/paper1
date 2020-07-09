@@ -24,33 +24,29 @@ use  "$sharelatex\DB\scaleup_hd.dta", clear
 *PANEL A (Outcomes)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	{
 	qui su `var'
 	*Variable 
-	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify
+	qui putexcel A`n'=("`var'")
 	*Obs
 	 
-	qui putexcel B`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify		
+	qui putexcel B`n'=(r(N))  
 	*Mean
 	 
 	local mu=round(r(mean),0.01)
-	qui putexcel C`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel C`n'=("`mu'") 		
 	*Std Dev
 	 
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
 	
-	qui putexcel C`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel C`m'=("`sd'") 		
 	*Range
 	local range="[`r(min)', `r(max)']"
 	 
-	qui putexcel D`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel D`n'=("`range'")		
 
 	local n=`n'+2
 	local m=`m'+2
@@ -61,31 +57,27 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
+putexcel set  "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
 	*Variable 
-	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify
+	qui putexcel A`n'=("`var'")
 	*Obs
 	
-	qui putexcel B`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel B`n'=(r(N))		
 	*Mean
 	local mu=round(r(mean),0.01)
-	qui putexcel C`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel C`n'=("`mu'")			
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel C`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify	
+	qui putexcel C`m'=("`sd'")
 		
 	*Range
 	local range="[`r(min)', `r(max)']"
-	qui putexcel D`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel D`n'=("`range'")
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -103,29 +95,26 @@ keep if junta==7
 *PANEL A (Outcomes)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify	
 foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	{
 	qui su `var'
 
 	*Obs
-	qui putexcel H`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify	
+	qui putexcel H`n'=(r(N))  
 		
 	*Mean
 	local mu=round(r(mean),0.01)
-	qui putexcel I`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel I`n'=("`mu'") 		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel I`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel I`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel J`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel J`n'=("`range'")		
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -136,29 +125,26 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
 
 	*Obs
-	qui putexcel H`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel H`n'=(r(N))
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel I`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel I`n'=("`mu'")  		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel I`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel I`m'=("`sd'")  		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel J`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel J`n'=("`range'")	
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -172,10 +158,12 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 	*DB: March Pilot
 use "$sharelatex\DB\pilot_operation.dta", clear
 drop if tratamientoquelestoco==0
-merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(3) nogen
+merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(1 3) nogen
+ren expediente exp
+merge m:1 exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", keep(1 3) gen(_mNuevasIniciales) force
+
 //drop if tratamientoquelestoco==3
 replace junta=7 if missing(junta)
-rename expediente exp
 rename tratamientoquelestoco treatment
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
@@ -212,32 +200,28 @@ keep if renglon==1
 *PANEL A (Outcomes)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
 	*Variable 
-	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify
+	qui putexcel A`n'=("`var'")
 	*Obs
 	
-	qui putexcel E`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify		
+	qui putexcel E`n'=(r(N))  		
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel F`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel F`n'=("`mu'") 		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel F`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel F`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel G`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel G`n'=("`range'")  
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -246,30 +230,27 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
 	
 	*Obs
-	qui putexcel E`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel E`n'=(r(N))
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel F`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel F`n'=("`mu'")  		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel F`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel F`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel G`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
-		
+	qui putexcel G`n'=("`range'") 
+	
 	local n=`n'+2
 	local m=`m'+2
 	}
@@ -297,6 +278,7 @@ replace tiempomasprob_employee=. if perc>=98
 
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("SS_A") modify		
 foreach var of varlist masprob dineromasprob tiempomasprob ///
 	{
 
@@ -304,14 +286,12 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 	
 	*Mean
 	local mu=round(r(mean),0.01)
-	qui putexcel C`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify			
+	qui putexcel C`n'=("`mu'")  	
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel C`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify		
+	qui putexcel C`m'=("`sd'") 	
 
 	local n=`n'+2
 	local m=`m'+2
@@ -319,8 +299,7 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 
 	*Obs
 	qui su masprob if tipodeabogado!=.
-	qui putexcel C11=("`r(N)'")  using "$sharelatex/Tables/SS.xlsx", ///
-	sheet("SS_A") modify
+	qui putexcel C11=("`r(N)'")  
 
 restore
 
@@ -334,6 +313,7 @@ rename RA_5_8 tiempomasprob_law_emp
 	
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("SS_A") modify			
 foreach var of varlist masprob dineromasprob tiempomasprob ///
 	{
 
@@ -341,14 +321,12 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 	
 	*Mean
 	local mu=round(r(mean),0.01)
-	qui putexcel D`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify			
+	qui putexcel D`n'=("`mu'")
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel D`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify	
+	qui putexcel D`m'=("`sd'") 
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -356,8 +334,7 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 
 	*Obs
 	qui su masprob if tipodeabogado!=.
-	qui putexcel D11=("`r(N)'")  using "$sharelatex/Tables/SS.xlsx", ///
-	sheet("SS_A") modify
+	qui putexcel D11=("`r(N)'")
 	
 restore
 
@@ -379,14 +356,12 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 	
 	*Mean
 	local mu=round(r(mean),0.01)
-	qui putexcel E`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify			
+	qui putexcel E`n'=("`mu'")  		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel E`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("SS_A") modify	
+	qui putexcel E`m'=("`sd'") 
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -394,8 +369,7 @@ foreach var of varlist masprob dineromasprob tiempomasprob ///
 
 	*Obs
 	qui su masprob if tipodeabogado!=.
-	qui putexcel E11=("`r(N)'")  using "$sharelatex/Tables/SS.xlsx", ///
-	sheet("SS_A") modify
+	qui putexcel E11=("`r(N)'") 
 	
 restore
 
@@ -440,31 +414,27 @@ foreach var in ///
 *PANEL A (Outcomes)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
 	*Variable 
-	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify
+	qui putexcel A`n'=("`var'")
 	*Obs
 	
-	qui putexcel K`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify		
+	qui putexcel K`n'=(r(N)) 		
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel L`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel L`n'=("`mu'") 		
 	*Std Dev
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel L`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel L`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel M`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel M`n'=("`range'")	
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -474,29 +444,26 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
 	
 	*Obs
-	qui putexcel K`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel K`n'=(r(N))
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel L`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel L`n'=("`mu'") 		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel L`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel L`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel M`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel M`n'=("`range'")
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -547,31 +514,27 @@ replace c_total = 100000
 *PANEL A (Outcomes)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
 	*Variable 
-	qui putexcel A`n'=("`var'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify
+	qui putexcel A`n'=("`var'")
 	*Obs
 	
-	qui putexcel N`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify		
+	qui putexcel N`n'=(r(N)) 		
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel O`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel O`n'=("`mu'")		
 	*Std Dev
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel O`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel O`m'=("`sd'") 		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel P`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelA") modify			
+	qui putexcel P`n'=("`range'")		
 		
 	local n=`n'+2
 	local m=`m'+2
@@ -581,30 +544,27 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
 	
 	*Obs
-	qui putexcel N`n'=(r(N))  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
+	qui putexcel N`n'=(r(N))
 	*Mean
 	
 	local mu=round(r(mean),0.01)
-	qui putexcel O`n'=("`mu'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel O`n'=("`mu'")  		
 	*Std Dev
 	
 	local std=round(r(sd),0.01)
 	local sd="(`std')"
-	qui putexcel O`m'=("`sd'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify			
+	qui putexcel O`m'=("`sd'")  		
 	*Range
 	
 	local range="[`r(min)', `r(max)']"
-	qui putexcel P`n'=("`range'")  using "$sharelatex/Tables/SS.xlsx", ///
-		sheet("PanelB") modify		
-		
+	qui putexcel P`n'=("`range'") 
+	
 	local n=`n'+2
 	local m=`m'+2
 	}
