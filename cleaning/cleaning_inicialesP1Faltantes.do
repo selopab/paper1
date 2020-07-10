@@ -68,19 +68,19 @@ destring  `var', replace force
 }
 //0=diario 1=mensual 2=quincenal 3=semanal
 
-gen salario_diario = sueldobase
-replace salario_diario = salario_diario/30 if periodicidaddelsueldobase == 1
-replace salario_diario = salario_diario/15 if periodicidaddelsueldobase == 2
-replace salario_diario = salario_diario/4 if periodicidaddelsueldobase == 3
+gen salario_diarioN = sueldobase
+replace salario_diarioN = salario_diarioN/30 if periodicidaddelsueldobase == 1
+replace salario_diarioN = salario_diarioN/15 if periodicidaddelsueldobase == 2
+replace salario_diarioN = salario_diarioN/4 if periodicidaddelsueldobase == 3
 
-destring númerodehoraslaboradas, gen(horas_sem) force
+destring númerodehoraslaboradas, gen(horas_semN) force
 destring periodicidaddelashoraslaboradas, replace force
 
-replace horas_sem = horas_sem*5 if periodicidaddelashoraslaboradas == 0
+replace horas_semN = horas_semN*5 if periodicidaddelashoraslaboradas == 0
 
-gen abogado_pub = tipodeabogado == 3
-ren género gen
-gen trabajador_base = abs(trabajadordeconfianza-1)
-gen c_antiguedad = fechadesalida_d - fechadeentrada_d
+gen abogado_pubN = tipodeabogado == 3
+ren género genN
+gen trabajador_baseN = abs(trabajadordeconfianza-1)
+gen c_antiguedadN = fechadesalida_d - fechadeentrada_d
 
-save "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", replace
+save "$pilot3\out\inicialesP1Faltantes_wod.dta", replace

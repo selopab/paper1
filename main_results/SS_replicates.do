@@ -158,9 +158,14 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 	*DB: March Pilot
 use "$sharelatex\DB\pilot_operation.dta", clear
 drop if tratamientoquelestoco==0
-merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(1 3) nogen
+merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(1 3)
 ren expediente exp
-merge m:1 exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", keep(1 3) gen(_mNuevasIniciales) force
+merge m:1 exp anio using "$pilot3\out\inicialesP1Faltantes_wod.dta", keep(1 3) gen(_mNuevasIniciales) force
+
+foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
+	{
+	replace `var' = `var'N if missing(`var')
+	}
 
 //drop if tratamientoquelestoco==3
 replace junta=7 if missing(junta)
