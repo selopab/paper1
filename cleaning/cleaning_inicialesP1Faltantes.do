@@ -59,4 +59,28 @@ quietly by junta exp anio:  gen dup = cond(_N==1,0,_n)
 replace dup=1 if dup==0
 keep if dup==1
 
-save "$pilot3\out\inicialesP1Faltantes_wod.dta", replace
+foreach var in fechadeentrada fechadesalida{
+gen `var'_d = date(`var', "DMY")
+}
+
+foreach var in sueldobase periodicidaddelsueldobase{
+destring  `var', replace force
+}
+//0=diario 1=mensual 2=quincenal 3=semanal
+
+gen salario_diario = sueldobase
+replace salario_diario = salario_diario/30 if periodicidaddelsueldobase == 1
+replace salario_diario = salario_diario/15 if periodicidaddelsueldobase == 2
+replace salario_diario = salario_diario/4 if periodicidaddelsueldobase == 3
+
+destring númerodehoraslaboradas, gen(horas_sem) force
+destring periodicidaddelashoraslaboradas, replace force
+
+replace horas_sem = horas_sem*5 if periodicidaddelashoraslaboradas == 0
+
+gen abogado_pub = tipodeabogado == 3
+ren género gen
+gen trabajador_base = abs(trabajadordeconfianza-1)
+gen c_antiguedad = fechadesalida_d - fechadeentrada_d
+
+save "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", replace
