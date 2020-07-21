@@ -67,7 +67,7 @@ keep if renglon==1
 
 *********
 *Settlement amount for 'treated' files
-keep if (c1_se_concilio==1 & (calculator==1 | conciliator==1))
+keep if (c1_se_concilio==1 & calculator==1)
 
 
 *Date imputation
@@ -369,10 +369,7 @@ teffects nnmatch (salario_diario  ///
 
 local i=`i'+1
 local Col=substr(c(ALPHA),2*`i'-1,1)
-putexcel clear
-putexcel set "$sharelatex/Tables/Table8_assessUnconfoundedness_repITT.xlsx", sheet("balance_match") modify
 
-  
 teffects nnmatch (c_antiguedad  ///
   min_ley abogado_pub gen trabajador_base salario_diario  horas_sem ) ///
   (treat) if covariate_space==1, nneighbor(3) ///
