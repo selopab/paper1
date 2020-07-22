@@ -63,27 +63,21 @@ gen difPag = abs(pagadaExp - pagadaOfirec)
 gen difOtor = abs(otorgadaExp - otorgadaOfirec)
 
 gen verify = 0
-gen problema = ""
 
 replace verify = 1 if  difDates>365 & !missing(fechaOfirec) & !missing(fechaExp)
-replace problema = "Más de un año de diferencia entre expediente y ofirec" if  difDates>365 & !missing(fechaOfirec) & !missing(fechaExp) //102 obs
+gen problema1 = "Más de un año de diferencia entre expediente y ofirec" if  difDates>365 & !missing(fechaOfirec) & !missing(fechaExp) //102 obs
 
 replace verify = 1 if  difPag > 0 & !missing(pagadaExp) & !missing(pagadaOfirec)
-replace problema = problema + ", Cantidad pagada en expediente y ofirec es diferente" if  difPag > 0 & !missing(pagadaExp) & !missing(pagadaOfirec ) & !missing(problema) //25 obs
-replace problema = "Cantidad pagada en expediente y ofirec es diferente" if  difPag > 0 & !missing(pagadaExp) & !missing(pagadaOfirec ) & missing(problema) //25 obs
-
+gen problema2 = "Cantidad pagada en expediente y ofirec es diferente" if  difPag > 0 & !missing(pagadaExp) & !missing(pagadaOfirec ) //25 obs
 
 replace verify = 1 if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec)
-replace problema = problema + ", Cantidad otorgada en expediente y ofirec es diferente" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) & !missing(problema) //31 obs
-replace problema = "Cantidad otorgada en expediente y ofirec es diferente" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) & missing(problema) //31 obs
-
+gen problema3 = "Cantidad otorgada en expediente y ofirec es diferente" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) 
 
 replace verify = 1 if  terminoOfirec != terminoExp
-replace problema = problema + ", Modos de término difieren" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) & !missing(problema)
-replace problema = "Modos de término difieren" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) & missing(problema) //31 obs
+gen problema4 = "Modos de término difierentes" if difOtor>0 & !missing(otorgadaExp) & !missing(otorgadaOfirec) 
 
 
-keep junta expediente anio NombreActor verify problema
+keep junta expediente anio NombreActor verify problema*
 
 ren(junta expediente anio) (Junta Expediente Año)
 
