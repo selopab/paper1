@@ -40,31 +40,7 @@ replace phase=1 if missing(phase)
 
 
 merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
-merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\terminaciones.dta", gen(merchados) keep(1 3)
-
-gen ganancia = c1_cantidad_total_pagada_conveni
-replace ganancia = cant_convenio_exp if missing(ganancia)
-replace ganancia = cantidadOtorgada if missing(ganancia)
-
-replace convenio_2m=seconcilio if missing(convenio_2m)
-replace convenio_2m=seconcilio if seconcilio==1
-
-replace convenio_5m=convenio_2m if missing(convenio_5m)
-replace convenio_5m=convenio_2m if convenio_2m==1
-
-replace convenio_m5m=convenio_5m if missing(convenio_m5m)
-replace convenio_m5m=convenio_5m if convenio_5m==1
-
-replace modo_termino_expediente=3 if missing(modo_termino_expediente) & convenio_m5m==1
-replace modo_termino_expediente = modoTermino if missing(modo_termino_expediente) | [modo_termino_expediente == 3 & !missing(modoTermino)]
-replace modo_termino_expediente=2 if missing(modo_termino_expediente)
-
-replace modo_termino_expediente = modoTermino  if missing(modo_termino_expediente)
-replace modo_termino_expediente = 7 if modo_termino_expediente==6 & missing(ganancia)
-
-label define finales 1 "Expired" 2 "Continues" 3 "Settled" 4 "Dropped" 5 "" 6 "Court ruling with payment" 7 "Court ruling without payment", modify
-label val modo_termino_expediente finales
-********************************************************************************
+merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
 forvalues i=1/3{
@@ -95,14 +71,45 @@ drop if TAll==1
 *44 drops
 *sort junta exp anio fecha
 *bysort junta exp anio: keep if _n==1
+********************************************************************************
+*Drop conciliator observations
 drop if treatment==3
 
 sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
-keep if renglon==1 
+keep if renglon==1
+
+
+gen ganancia = c1_cantidad_total_pagada_conveni
+replace ganancia = cant_convenio_exp if missing(ganancia)
+replace ganancia = cantidadOtorgada if missing(ganancia)
+
+replace convenio_2m=seconcilio if missing(convenio_2m)
+replace convenio_2m=seconcilio if seconcilio==1
+
+replace convenio_5m=convenio_2m if missing(convenio_5m)
+replace convenio_5m=convenio_2m if convenio_2m==1
+
+replace convenio_m5m=convenio_5m if missing(convenio_m5m)
+replace convenio_m5m=convenio_5m if convenio_5m==1
+
+replace modo_termino_expediente=3 if missing(modo_termino_expediente) & convenio_m5m==1
+//replace modo_termino_expediente = modoTermino if missing(modo_termino_expediente) | [modo_termino_expediente == 3 & !missing(modoTermino)]
+replace modo_termino_expediente=2 if missing(modo_termino_expediente)
+
+//replace modo_termino_expediente = modoTermino  if missing(modo_termino_expediente)
+
+replace modoTermino = modo_termino_expediente if missing(modoTermino)
+
+replace modoTermino = 7 if modoTermino==6 & missing(ganancia)
+
+label define finales 1 "Expired" 2 "Continues" 3 "Settled" 4 "Dropped" 5 "" 6 "Court ruling with payment" 7 "Court ruling without payment", modify
+label val modoTermino finales
+********************************************************************************
+
 *Follow-up (more than 5 months)
 
-tab modo_termino_expediente treatment if modo_termino_expediente != 5, column nofreq matcell(valores)
+tab modoTermino treatment if modoTermino != 5, matcell(valores)
 putexcel set "$sharelatex\Tables\Table5_December2018Followup.xlsx", mod
 
 putexcel C1 = ("Control") D1 = ("Calculator")
@@ -110,12 +117,13 @@ putexcel B2 = ("Expired") B3 = ("Continues") B4 = ("Settled") B5 = ("Dropped") B
 putexcel C2 = matrix(valores)
 
 forvalues  i = 1/2{
-tab modo_termino_expediente treatment if modo_termino_expediente != 5 & phase == `i', column nofreq matcell(valores)
 putexcel set "$sharelatex\Tables\Table5_December2018Followupp`i'.xlsx", mod
+
+tab modoTermino treatment if [modoTermino != 5 & phase == `i'], matcell(valores)
+putexcel C2 = matrix(valores)
 
 putexcel C1 = ("Control") D1 = ("Calculator")
 putexcel B2 = ("Expired") B3 = ("Continues") B4 = ("Settled") B5 = ("Dropped") B6 = ("Court ruling with payment") B7 = ("Court ruling without payment")
-putexcel C2 = matrix(valores)
 
 }
 
