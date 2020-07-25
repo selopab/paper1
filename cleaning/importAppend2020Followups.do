@@ -1,6 +1,6 @@
 /*Import July 2020 P2 Followup*/
 
-import excel "$sharelatex\Raw\P2jul2020Followup.xlsx", firstr clear cellrange(A4)
+import excel "$sharelatex\Raw\P2jul2020Followup.xlsx", firstr clear
 drop if missing(Junta)
 drop Muestra50 
 
@@ -17,7 +17,7 @@ gen `var'_d = date(`var', "YMD")
 //gen FechadetérminoFechadeúlti_d = date(FechadetérminoFechadeúlti, "YMD")
 
 foreach var in Cantidadotorgadaenlaudoaco CantidadpagadaINEGI CANTIDADOTORGADAENCONVENIOO Cantidadpagada{
-destring `var', replace force
+destring `var', replace force 
 }
 
 
@@ -41,7 +41,7 @@ rename Cantidadpagada pagadaExp
 ren CANTIDADOTORGADAENCONVENIOO otorgadaExp
 
 //gen fechaExp = date(M, "DMY")
-ren M fechaExp_s
+ren Fechaúltimomovimientoexpedien fechaExp_s
 
 gen fechaExp = date(fechaExp_s, "DMY")
 replace fechaExp = date(fechaExp_s, "MDY") if missing(fechaExp)
@@ -79,7 +79,6 @@ encode modoTermino_s, gen(modoTermino)
 
 keep junta expediente anio modoTermino cantidadOtorgada cantidadPagada fechaOfirec fechaExp fechaUltimoMov
 rename expediente exp
-/*
 append using "$sharelatex\Terminaciones\Data\terminaciones.dta"
 
 save "$sharelatex\Terminaciones\Data\followUps2020.dta", replace
