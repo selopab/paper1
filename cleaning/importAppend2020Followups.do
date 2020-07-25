@@ -72,13 +72,15 @@ replace modoTermino_s=terminoOfirec if fechaOfirec>fechaExp & !missing(fechaOfir
 replace modoTermino_s=terminoOfirec if missing(modoTermino_s)
 replace modoTermino_s=terminoOfirec if modoTermino_s=="CONTINUA" & (cantidadPagada!=0 | cantidadOtorgada!=0)
 replace modoTermino_s=terminoExp if modoTermino_s=="CONTINUA" & (cantidadPagada!=0 | cantidadOtorgada!=0)
-replace modoTermino_s="LAUDO" if modoTermino_s=="LAUDO "
-replace modoTermino_s="CONVENIO" if modoTermino_s=="CONVENIO "
 
 encode modoTermino_s, gen(modoTermino)
-
+sort junta exp anio NombreActor
+by junta exp anio: keep if _n==1
 keep junta expediente anio modoTermino cantidadOtorgada cantidadPagada fechaOfirec fechaExp fechaUltimoMov
 rename expediente exp
-append using "$sharelatex\Terminaciones\Data\terminaciones.dta"
+gen phase = 2
 
+append using "$sharelatex\Terminaciones\Data\terminaciones.dta"
+replace phase = 1 if missing(phase)
 save "$sharelatex\Terminaciones\Data\followUps2020.dta", replace
+
