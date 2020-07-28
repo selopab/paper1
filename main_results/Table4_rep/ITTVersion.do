@@ -56,6 +56,7 @@ replace convenio_m5m=convenio_5m if missing(convenio_m5m)
 replace convenio_m5m=convenio_5m if convenio_5m==1
 replace convenio_m5m = 1 if modoTermino == 3
 replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
 
 ********************************************************************************
 
