@@ -43,6 +43,7 @@ replace phase=1 if missing(phase)
 
 *Follow-up (more than 5 months)
 merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen
+merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
 
 *Settlement
 replace convenio_2m=seconcilio if missing(convenio_2m)
@@ -53,6 +54,7 @@ replace convenio_5m=convenio_2m if convenio_2m==1
 
 replace convenio_m5m=convenio_5m if missing(convenio_m5m)
 replace convenio_m5m=convenio_5m if convenio_5m==1
+replace convenio_m5m = 1 if modoTermino == 3
 ********************************************************************************
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
