@@ -55,6 +55,8 @@ replace convenio_5m=convenio_2m if convenio_2m==1
 replace convenio_m5m=convenio_5m if missing(convenio_m5m)
 replace convenio_m5m=convenio_5m if convenio_5m==1
 replace convenio_m5m = 1 if modoTermino == 3
+replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+
 ********************************************************************************
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
