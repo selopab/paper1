@@ -101,30 +101,30 @@ replace modo_termino_expediente=2 if missing(modo_termino_expediente)
 
 replace modoTermino = modo_termino_expediente if missing(modoTermino)
 
-replace modoTermino = 7 if modoTermino==6 & missing(ganancia)
+replace modoTermino = 7 if modoTermino==6 & missing(ganancia) | ganancia == 0
+replace modoTermino = 1 if modoTermino == 4
 
-label define finales 1 "Expired" 2 "Continues" 3 "Settled" 4 "Dropped" 5 "" 6 "Court ruling with payment" 7 "Court ruling without payment", modify
+label define finales 1 "Expired / dropped" 2 "Continues" 3 "Settled" 4 "Dropped" 5 "" 6 "Court ruling with payment" 7 "Court ruling without payment", modify
 label val modoTermino finales
 ********************************************************************************
 
 *Follow-up (more than 5 months)
 
-tab modoTermino treatment if modoTermino != 5, matcell(valores)
-putexcel set "$sharelatex\Tables\Table5_December2018Followup.xlsx", mod
+tab modoTermino treatment if (modoTermino != 5 & modoTermino != 4), matcell(valores)
+putexcel set "$sharelatex\Tables\Table5_December2018Followup.xlsx", mod sheet("Table5_December2018Followup")
 
 putexcel C1 = ("Control") D1 = ("Calculator")
-putexcel B2 = ("Expired") B3 = ("Continues") B4 = ("Settled") B5 = ("Dropped") B6 = ("Court ruling with payment") B7 = ("Court ruling without payment")
+putexcel B2 =("Expired / Dropped") B3 = ("Continues") B4 = ("Settled") B5 = ("Court ruling with payment") B6 = ("Court ruling without payment")
 putexcel C2 = matrix(valores)
 
 forvalues  i = 1/2{
 putexcel set "$sharelatex\Tables\Table5_December2018Followupp`i'.xlsx", mod
 
-tab modoTermino treatment if [modoTermino != 5 & phase == `i'], matcell(valores)
+tab modoTermino treatment if [modoTermino != 5 & modoTermino != 4 & phase == `i'], matcell(valores)
 putexcel C2 = matrix(valores)
 
 putexcel C1 = ("Control") D1 = ("Calculator")
-putexcel B2 = ("Expired") B3 = ("Continues") B4 = ("Settled") B5 = ("Dropped") B6 = ("Court ruling with payment") B7 = ("Court ruling without payment")
-
+putexcel B2 = ("Expired / Dropped") B3 = ("Continues") B4 = ("Settled") B5 = ("Court ruling with payment") B6 = ("Court ruling without payment")
 }
 
 	

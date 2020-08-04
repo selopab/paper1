@@ -52,6 +52,9 @@ keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_a
 append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
 
+merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen
+merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
 ********************************************************************************
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
