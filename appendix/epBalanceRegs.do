@@ -32,11 +32,14 @@ save `temp_p2'
 
 use "$sharelatex/DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
-rename (tratamientoquelestoco expediente) (treatment exp)
+
+=======
 
 *Presence employee
 replace p_actor=(p_actor==1)
-drop if treatment==0
+drop if tratamientoquelestoco==0
+rename (tratamientoquelestoco expediente) (treatment exp)
+>>>>>>> cleanAppendixC
 
 keep junta exp anio seconcilio convenio_2m convenio_5m fecha junta fecha treatment p_actor ///
 abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem abogado_pub

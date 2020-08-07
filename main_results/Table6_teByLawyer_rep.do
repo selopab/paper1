@@ -80,8 +80,11 @@ by junta exp anio: gen renglon = _n
 keep if renglon==1
 ********************************************************************************
 
+merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", keep(1 3) keepusing(fechaDemanda_M tipodeabogado_M fechadecaptura2) gen(_mNuevasIniciales) 
+*drop if fechadecaptura2=="05"
 *Follow-up (more than 5 months)
 merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen
+merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
 
 *Settlement
 replace convenio_2m=seconcilio if missing(convenio_2m)
@@ -92,12 +95,9 @@ replace convenio_5m=convenio_2m if convenio_2m==1
 
 replace convenio_m5m=convenio_5m if missing(convenio_m5m)
 replace convenio_m5m=convenio_5m if convenio_5m==1
-
-*Remove conciliator
-drop if treatment==3
-
-merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", keep(1 3) keepusing(fechaDemanda_M tipodeabogado_M fechadecaptura2) gen(_mNuevasIniciales) 
-*drop if fechadecaptura2=="05"
+replace convenio_m5m = 1 if modoTermino == 3
+replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
 
 foreach var in fechaDemanda tipodeabogado{
 replace `var' = `var'_M if missing(`var') 
