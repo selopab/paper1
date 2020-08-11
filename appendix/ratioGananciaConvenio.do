@@ -6,6 +6,7 @@ Columns (1)-(8)
 */
 ********************************************************************************
 ****************************
+set scheme s2color
 use "$scaleup\DB\scaleup_operation.dta", clear
 rename ao anio
 rename expediente exp
@@ -132,9 +133,14 @@ replace ganancia = 0 if [modoTermino == 4 & missing(ganancia)]| modoTermino==5 |
 | [modoTermino==1  & missing(ganancia)]
 
 gen ratioGananciaConvenio = ganancia/liq_total_convenio
+
 #delimit ;
 *Graph only lower 95%;
-twoway kdensity ratioGananciaConvenio if treatment==2 & ratioGananciaConvenio<3.5 & modoTermino==3 & abogado_pub==0 , lpattern(line) lcolor(blue) ||
+twoway kdensity ratioGananciaConvenio if treatment==2 & ratioGananciaConvenio<3.5 & modoTermino==3 & abogado_pub==0 , lpattern(line) lcolor(blue) graphregion(color(none)) ||
 		kdensity ratioGananciaConvenio if treatment==1 & ratioGananciaConvenio<3.5 & modoTermino==3 & abogado_pub==0, lpattern(line) lcolor(red)
-		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Ratio of Amounts") title("Ratio of Actual and Predicted Settlement Amounts") subtitle("All hearings, truncated at 95%") ytitle("kdensity");
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Ratio of Amounts") 
+		//title("Ratio of Actual and Predicted Settlement Amounts") subtitle("All hearings, truncated at 95%") 
+		ytitle("kdensity");
 #delimit cr
+
+graph export "$sharelatex\Figures\kdensityRatio.pdf", replace

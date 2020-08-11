@@ -54,199 +54,221 @@ tempfile selectedCasefiles
 save `selectedCasefiles'
 /* Actores */
 
-putexcel set "$sharelatex\Tables\surveySS.xlsx", sheet("Completa") modify
+putexcel set "$sharelatex\Tables\surveySS_dummies.xlsx", sheet("Actor") modify
 use "$sharelatex/DB/Append Encuesta Inicial Actor.dta", clear
 merge 1:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age
 putexcel A5 = ("Age")
 qui sum Age
-putexcel C5 = (r(mean))
-putexcel C6 = (r(sd))
-putexcel c7 = (r(N))
-
-// 2) Tenure. Lawyersonly (9 - 11) 
-
-// 3) Number of lawsuits. L (13 - 17)
-
-// 4) Current number of lawsuits. L (19 - 23)
+putexcel B5 = (r(mean))
+putexcel B6 = (r(sd))
+putexcel B7 = (r(N))
 
 // 5) Number of employees
-putexcel A25 = ("Number of employees") 
-tab numempleados, matcell(empMat)  matrow(empLevels)
-putexcel B25 = matrix(empLevels)
-putexcel C25 = matrix(empMat)
-putexcel c29 = (r(N))
+gen empleados50 = numempleados <=2
+replace empleados50 = . if missing(numempleados)
+
+putexcel A8 = ("Less than 50 employees") 
+qui sum empleados50
+putexcel B8 = (r(mean))
+putexcel B9 = (r(sd))
+putexcel B10= (r(N))
 
 // 6) Percentage of what is obtained
-putexcel A31 = ("Percentage of what is obtained")
+putexcel A11 = ("Percentage of what is obtained")
 qui sum porc_pago
-putexcel C31 = (r(mean))
-putexcel C32 = (r(sd))
-putexcel c33 = (r(N))
+putexcel B11 = (r(mean))
+putexcel B12 = (r(sd))
+putexcel B13 = (r(N))
 
 // 7) Probability of other part of winning
-putexcel A35 = ("Probability of winning")
+putexcel A14 = ("Probability of winning")
 qui sum probotro
-putexcel C35 = (r(mean))
-putexcel C36 = (r(sd))
-putexcel c37 = (r(N))
+putexcel B14 = (r(mean))
+putexcel B15 = (r(sd))
+putexcel B16 = (r(N))
 
 // 8) Education
-putexcel A39 = ("Education")
-tab A_1_2, matcell(edMat) matrow(edLevels)
-putexcel b39 = matrix(edLevels)
-putexcel C39 = matrix(edMat)
-putexcel c43 = (r(N))
+gen masQuePrepa = A_1_2<4
+qui sum masQuePrepa
+putexcel A17 = ("More than secondary education")
+putexcel B17 = (r(mean))
+putexcel B18 = (r(sd))
+putexcel B19 = (r(N))
 
 // 10) Changed lawyer
-putexcel a45 =("Have you changed lawyer during trial?")
+putexcel a20 =("Have you changed lawyer during trial?")
 qui sum A_4_6
-putexcel c45 = (r(mean))
-putexcel c46 = (r(sd))
-putexcel c47 = (r(N))
+putexcel B20 = (r(mean))
+putexcel B21 = (r(sd))
+putexcel B22 = (r(N))
 
 //11) Probability of winning trial
-putexcel a49 = ("Probability of winning trial")
+putexcel a23 = ("Probability of winning trial")
 qui sum A_5_1
-putexcel c49 = (r(mean))
-putexcel c50 = (r(sd))
-putexcel c51 = (r(N))
+putexcel B23 = (r(mean))
+putexcel B24 = (r(sd))
+putexcel B25 = (r(N))
 
 // 12) Most probable amount
-putexcel a53 = ("Most probable amount")
+putexcel a26 = ("Most probable amount")
 qui sum A_5_5
-putexcel c53 = (r(mean))
-putexcel c54 = (r(sd))
-putexcel c55 = (r(N))
+putexcel B26 = (r(mean))
+putexcel B27 = (r(sd))
+putexcel B28 = (r(N))
 
 // 13) Most probable time
-putexcel a57 = ("Most probable time")
+putexcel a29 = ("Most probable time")
 qui sum A_5_8
-putexcel c57 = (r(mean))
-putexcel c58 = (r(sd))
-putexcel c59 = (r(N))
+putexcel B29 = (r(mean))
+putexcel B30 = (r(sd))
+putexcel B31 = (r(N))
 
 // 14) How well were you treated?
-putexcel a61 = ("How well were you treated?")
-tab A_6_1, matcell(trMat) matrow(trLevels)
-putexcel b61 = matrix( trLevels)
-putexcel C61 = matrix(trMat)
-putexcel c65 = (r(N))
+gen treatedWell = A_6_1<3
+replace treatedWell = . if missing(A_6_1)
+
+putexcel a32 = ("How well were you treated?")
+qui sum treatedWell
+putexcel B32 = (r(mean))
+putexcel B33 = (r(sd))
+putexcel B34 = (r(N))
 
 // 15) How common is the company mistreat its employees?
-putexcel a67 = ("How common is the company mistreat its employees?")
-tab A_6_2, matcell(trcMat) matrow(trcLevels)
-putexcel b67 = matrix(trcLevels)
-putexcel C67 = matrix( trcMat)
-putexcel c71 = (r(N))
+gen firmMistreats = A_6_2<3
+replace firmMistreats = . if missing(A_6_2)
+
+putexcel a35 = ("The company mistreats its employees")
+qui sum firmMistreats
+putexcel B36 = (r(mean))
+putexcel B37 = (r(sd))
+putexcel B38 = (r(N))
 
 // 16) Level of anger with company
-putexcel A73 = ("Level of anger with company")
-tab A_6_3, matcell(angerMat) matrow(angerLevels)
-putexcel b73 = matrix(trcLevels)
-putexcel C73 = matrix( trcMat)
-putexcel c77 = (r(N))
+gen veryAngry = A_6_3 < 2
+replace veryAngry = . if missing(A_6_3)
+
+putexcel A39 = ("Is very angry with company")
+qui sum veryAngry
+putexcel B39 = (r(mean))
+putexcel B40 = (r(sd))
+putexcel B41 = (r(N))
 
 // 17) Repeated player
-putexcel A79 = ("Repeated player")
+putexcel A42 = ("Repeated player")
 sum A_7_3
-putexcel c79 = (r(mean))
-putexcel c80 = (r(sd))
-putexcel c81 = (r(N))
+putexcel B42 = (r(mean))
+putexcel B43 = (r(sd))
+putexcel B44 = (r(N))
 
 // Currently employed
-putexcel A83 = ("Currently employed")
+putexcel A45 = ("Currently employed")
 sum A_9_1 
-putexcel c83 = (r(mean))
-putexcel c84 = (r(sd))
-putexcel c85 = (r(N))
+putexcel B45 = (r(mean))
+putexcel B46 = (r(sd))
+putexcel B47 = (r(N))
 
 // Looking for a job
-putexcel A87 = ("Looking for a job")
+putexcel A48 = ("Looking for a job")
 sum A_9_2
-putexcel c87 = (r(mean))
-putexcel c88 = (r(sd))
-putexcel c89 = (r(N))
+putexcel B48 = (r(mean))
+putexcel B49 = (r(sd))
+putexcel B50 = (r(N))
  
 // Probability of finding a job in next 3 months
-putexcel A91 = ("Probability of finding a job in next 3 months")
+putexcel A51 = ("Probability of finding a job in next 3 months")
 sum A_9_3
-putexcel c91 = (r(mean))
-putexcel c92 = (r(sd))
-putexcel c93 = (r(N))
+putexcel B51 = (r(mean))
+putexcel B52 = (r(sd))
+putexcel B53 = (r(N))
 
 ******************
 /* Actor lawyer */
 ******************
+putexcel set "$sharelatex\Tables\surveySS_dummies.xlsx", sheet("Lawyers") modify
 use "$sharelatex/DB/Append Encuesta Inicial Representante Actor.dta", clear
 merge m:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age
+putexcel A5 = ("Age") 
 qui sum Age
-putexcel D5 = (r(mean))
-putexcel D6 = (r(sd))
-putexcel D7 = (r(N))
+putexcel B5 = (r(mean))
+putexcel B6 = (r(sd))
+putexcel B7 = (r(N))
 
 // 2) Tenure
-putexcel A9 = ("Tenure") 
+putexcel A8 = ("Tenure") 
 qui sum Tenure
-putexcel D9 = (r(mean))
-putexcel D10 = (r(sd))
-putexcel D11 = (r(N))
+putexcel B8 = (r(mean))
+putexcel B9 = (r(sd))
+putexcel B10 = (r(N))
 
 // 3) Number of lawsuits
-putexcel A13 = ("Number of lawsuits")
-tab litigiosha, matcell(numLaw) matrow(numLawLevels)
-putexcel B13 = matrix(numLawLevels)
-putexcel D13 = matrix( numLaw)
-putexcel D17 = (r(N))
+gen more100ls = litigiosha==4
+replace more100ls = . if missing(litigiosha)
+
+putexcel A11 = ("More than 100 historical cases")
+qui sum more100ls
+putexcel B11 = (r(mean))
+putexcel B12 = (r(sd))
+putexcel B13 = (r(N))
 
 // 4) Current number of lawsuits
-putexcel A19 = ("Current number of lawsuits")
-tab litigiosesta, matcell(cnumLaw) matrow(cnumLawLevels)
-putexcel B19 = matrix(cnumLawLevels)
-putexcel D19 = matrix(cnumLaw)
-putexcel D23 = (r(N))
+gen more30hls = litigiosesta==4
+replace more30hls = . if missing(litigiosesta)
+
+putexcel A14 = ("More than 30 current lawsuits")
+qui sum more30hls
+putexcel B14 = (r(mean))
+putexcel B15 = (r(sd))
+putexcel B16 = (r(N))
 
 // 5) Number of employees
-tab numempleados, matcell(empMat)  matrow(empLevels)
-putexcel D25 = matrix(empMat)
-putexcel D29 = (r(N))
+gen empleados50 = numempleados <=2
+replace empleados50 = . if missing(numempleados)
+
+replace empleados50 = . if missing(numempleados)
+putexcel A17 = ("Less than 50 employees") 
+qui sum empleados50
+putexcel B17 = (r(mean))
+putexcel B18 = (r(sd))
+putexcel B19= (r(N))
 
 // 6) Percentage of what is obtained
+putexcel A20 = ("Percentage of what is obtained")
 qui sum porc_pago
-putexcel D31 = (r(mean))
-putexcel D32 = (r(sd))
-putexcel D33 = (r(N))
+putexcel B20 = (r(mean))
+putexcel B21 = (r(sd))
+putexcel B22 = (r(N))
 
 // 7) Probability of other part of winning
+putexcel A23 = ("Probability of the other part winning")
 qui sum probotro
-putexcel D35 = (r(mean))
-putexcel D36 = (r(sd))
-putexcel D37 = (r(N))
-
-// 8) Education. P. (39 - 41)
-
-// 9) Changed lawyer. P. (43 - 45)
+putexcel B23 = (r(mean))
+putexcel B24 = (r(sd))
+putexcel B25 = (r(N))
 
 //10) Probability of winning trial
+putexcel A26 = ("Probability of winning trial")
 qui sum A_5_1
-putexcel D49 = (r(mean))
-putexcel D50 = (r(sd))
-putexcel D51 = (r(N))
+putexcel B26 = (r(mean))
+putexcel B27 = (r(sd))
+putexcel B28 = (r(N))
 
 // 11) Most probable amount
+putexcel A29 = ("Most probable amount")
 qui sum A_5_5
-putexcel D53 = (r(mean))
-putexcel D54 = (r(sd))
-putexcel D55 = (r(N))
+putexcel B29 = (r(mean))
+putexcel B30 = (r(sd))
+putexcel B31 = (r(N))
 
 // 12) Most probable time
+putexcel A32 = ("Most probable time")
 qui sum A_5_8
-putexcel D57 = (r(mean))
-putexcel D58 = (r(sd))
-putexcel D59 = (r(N))
+putexcel B32 = (r(mean))
+putexcel B33 = (r(sd))
+putexcel B34 = (r(N))
 
 **********************
 /* Defendant lawyer */
@@ -256,66 +278,74 @@ use "$sharelatex/DB/Append Encuesta Inicial Representante Demandado.dta", clear
 merge m:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age
-
+putexcel A5 = ("Age") 
 qui sum Age
-putexcel E5 = (r(mean))
-putexcel E6 = (r(sd))
-putexcel E7 = (r(N))
+putexcel C5 = (r(mean))
+putexcel C6 = (r(sd))
+putexcel C7 = (r(N))
 
 // 2) Tenure
-qui sum Age
-putexcel E9 = (r(mean))
-putexcel E10 = (r(sd))
-putexcel E11 = (r(N))
+putexcel A8 = ("Tenure") 
+qui sum Tenure
+putexcel C8 = (r(mean))
+putexcel C9 = (r(sd))
+putexcel C10 = (r(N))
 
 // 3) Number of lawsuits
-tab litigiosha, matcell(numLaw) matrow(numLawLevels)
-putexcel E13 = matrix( numLaw)
-putexcel E17 = (r(N))
+gen more100ls = litigiosha==4
+replace more100ls = . if missing(litigiosha)
+
+putexcel A11 = ("More than 100 historical cases")
+qui sum more100ls
+putexcel C11 = (r(mean))
+putexcel C12 = (r(sd))
+putexcel C13 = (r(N))
 
 // 4) Current number of lawsuits
-tab litigiosesta, matcell(cnumLaw) matrow(cnumLawLevels)
-putexcel E19 = matrix(cnumLaw)
-putexcel E23 = (r(N))
+gen more30hls = litigiosesta==4
+replace more30hls = . if missing(litigiosesta)
+
+putexcel A14 = ("More than 30 current lawsuits")
+qui sum more30hls
+putexcel C14 = (r(mean))
+putexcel C15 = (r(sd))
+putexcel C16 = (r(N))
 
 // 5) Number of employees
-tab numempleados, matcell(empMat)  matrow(empLevels)
-putexcel E25 = matrix(empMat)
-putexcel E29 = (r(N))
+gen empleados50 = numempleados <=2
+replace empleados50 = . if missing(numempleados)
 
-// 6) Percentage of what is obtained. (31 - 33)
+replace empleados50 = . if missing(numempleados)
+putexcel A17 = ("Less than 50 employees") 
+qui sum empleados50
+putexcel C17 = (r(mean))
+putexcel C18 = (r(sd))
+putexcel C19= (r(N))
 
 // 7) Probability of other part of winning
+putexcel A23 = ("Probability of the other part winning")
 qui sum probotro
-putexcel E35 = (r(mean))
-putexcel E36 = (r(sd))
-putexcel E37 = (r(N))
-
-// 8) Education. P. (39 - 41)
-
-// 9) Changed lawyer. P. (43 - 45)
-
+putexcel C23 = (r(mean))
+putexcel C24 = (r(sd))
+putexcel C25 = (r(N))
 
 //10) Probability of winning trial
+putexcel A26 = ("Probability of winning trial")
 qui sum A_5_1
-putexcel E49 = (r(mean))
-putexcel E50 = (r(sd))
-putexcel E51 = (r(N))
+putexcel C26 = (r(mean))
+putexcel C27 = (r(sd))
+putexcel C28 = (r(N))
 
 // 11) Most probable amount
+putexcel A29 = ("Most probable amount")
 qui sum A_5_5
-putexcel E53 = (r(mean))
-putexcel E54 = (r(sd))
-putexcel E55 = (r(N))
+putexcel C29 = (r(mean))
+putexcel C30 = (r(sd))
+putexcel C31 = (r(N))
 
 // 12) Most probable time
+putexcel A32 = ("Most probable time")
 qui sum A_5_8
-putexcel E57 = (r(mean))
-putexcel E58 = (r(sd))
-putexcel E59 = (r(N))
-
-
-
-
-
-
+putexcel C32 = (r(mean))
+putexcel C33 = (r(sd))
+putexcel C34 = (r(N))
