@@ -33,7 +33,7 @@ gen fecha=date(fecha_lista,"YMD")
 format fecha %td
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-trabajador_base
+trabajador_base liq_total_laudo_avg
 
 gen phase=2
 save "$paper\DB\temp_p2", replace
