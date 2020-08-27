@@ -32,10 +32,11 @@ save `temp_p2'
 use "$sharelatex/DB/pilot_operation.dta" , clear	//PHASE 1		
 replace junta=7 if missing(junta) //phase 1 solo en J7
 rename expediente exp
+drop if tratamientoquelestoco==0
 
 *Presence employee
 rename tratamientoquelestoco treatment
-drop if (treatment!=1) & (treatment!=2)
+//drop if (treatment!=1) & (treatment!=2)
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor ///
 abogado_pub c1_cantidad_total_pagada_conveni
@@ -59,10 +60,8 @@ replace T1T2=0 if TAll==1
 replace T1T3=0 if TAll==1
 replace T2T3=0 if TAll==1
 
-drop if abogado_pub == 1
-
 *32 drops
-drop if T1T2==1 & treatment == 1
+*drop if T1T2==1 & treatment == 1
 *46 drops
 drop if T1T3==1
 *31 drops
@@ -70,12 +69,18 @@ drop if T2T3==1
 *8 drops
 drop if TAll==1
 
-bysort junta exp anio: gen DuplicatesPostdrop=_N
+*bysort junta exp anio: gen DuplicatesPostdrop=_N
 
 *44 drops
-sort junta exp anio fecha
-bysort junta exp anio: keep if _n==1
+*sort junta exp anio fecha
+*bysort junta exp anio: keep if _n==1
+********************************************************************************
+*Drop conciliator observations
+drop if treatment==3
 
+sort junta exp anio fecha
+by junta exp anio: gen renglon = _n
+keep if renglon==1
 *Follow-up (more than 5 months)
 
 merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
@@ -110,9 +115,11 @@ putexcel C1 = ("Control") D1 = ("Calculator")
 putexcel B2 = ("Expired") B3 = ("Continues") B4 = ("Settled") B5 = ("Dropped") B6 = ("Court ruling with payment") B7 = ("Court ruling without payment")
 putexcel C2 = matrix(valores)
 
-/*
-putexcel B2 = ("Expired") B3 = ("Continue") B4 = ("Settlement") B5 = ("Drop") B6 = ("Court ruling") B7
+putexcel set "$sharelatex\Tables\Table5_December2018Followup", mod sheet("Table5_December2018Followup")
+
+putexcel B2 = ("Expired") B3 = ("Continue") B4 = ("Settlement") B5 = ("Drop") B6 = ("Court ruling") B7 = ("Court ruling without payment")
 putexcel C1 = ("Control") D1 = ("Calculator") 
+tab modo_termino_expediente treatment if modo_termino_expediente != 5, column nofreq matcell(valores)
 forvalues i = 1/5{
 	local val = valores[1, `i']
 	local renglon = `i' +1
@@ -123,13 +130,13 @@ forvalues i = 1/5{
 	putexcel D`renglon' = (`val')
 }	
 	
-	
+	/*
 forvalues j = 1/2{
 tab treatment modo_termino_expediente if modo_termino_expediente != 5 & phase==`j', matcell(valores)
 
 putexcel set "$sharelatex\Tables\Table5_December2018Followup.xlsx", mod sheet("P`j'")
 
-putexcel B2 = ("Expired") B3 = ("Continue") B4 = ("Settlement") B5 = ("Drop") B6 = ("Court ruling")
+putexcel B2 = ("Expired") B3 = ("Continue") B4 = ("Settlement") B5 = ("Drop") B6 = ("Court ruling") B7 = ("Court ruling without payment")
 putexcel C1 = ("Control") D1 = ("Calculator") 
 forvalues i = 1/5{
 	local val = valores[1, `i']

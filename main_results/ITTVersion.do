@@ -112,12 +112,14 @@ keep if renglon==1
 
 	*Interaction employee was present
 	reg seconcilio i.treatment##i.p_actor i.junta if treatment!=0 & phase==1 , robust  cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 	qui su p_actor if e(sample)
 	local IntMean=r(mean)
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P1")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 
 	
@@ -136,12 +138,14 @@ keep if renglon==1
 	
 	*Interaction employee was present
 	reg seconcilio i.treatment##i.p_actor i.junta if treatment!=0 & phase==2 , robust  cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 	qui su p_actor if e(sample)
 	local IntMean=r(mean)
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	
 	
 	*********************************
@@ -150,24 +154,28 @@ keep if renglon==1
 	
 	*Interaction employee was present
 	reg seconcilio i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
 	qui su p_actor if e(sample)
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 
 
 	
 	*Interaction employee was present PROBIT SPECIFICATION
 	probit seconcilio i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
 	qui su p_actor if e(sample)
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled. Probit")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	
 	*2 months
 	reg convenio_2m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
@@ -190,12 +198,14 @@ keep if renglon==1
 
 	*Long run
 	reg convenio_m5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 	qui su convenio_m5m if e(sample)
 	local DepVarMean=r(mean)
 	qui su p_actor if e(sample)
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Long Run. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 
 

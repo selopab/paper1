@@ -31,12 +31,12 @@ capture gen folio=s_expediente+"-"+s_anio
 
 *Variable Homologation
 rename  trabbase  trabajador_base
-rename  antigedad   c_antiguedad 
+rename  antigüedad   c_antiguedad 
 rename  salariodiariointegrado   salario_diario
 rename  horas   horas_sem 
 rename  tipodeabogado_1  abogado_pub 
-rename  reinstalacin reinst
-rename  indemnizacinconstitucional indem 
+rename  reinstalación reinst
+rename  indemnizaciónconstitucional indem 
 rename  salcaidostdummy sal_caidos 
 rename  primaantigtdummy  prima_antig
 rename  primavactdummy  prima_vac 
@@ -66,9 +66,13 @@ do "$sharelatex\DoFiles\cleaning\name_cleaning_pilot_rep.do"
 
 *DB Calculadora without duplicates (WOD)
 use "$sharelatex\DB\pilot_casefiles.dta", clear
-duplicates tag folio, gen(tag)
-
-keep if tag==0
+//duplicates tag folio, gen(tag)
+//keep if tag==0
+gen missingLiqLaudo = missing(liq_laudopos)
+bysort junta expediente anio: egen noHayLaudo = max(missingLiqLaudo)
+sort junta expediente anio noHayLaudo
+bysort junta expediente anio: gen renglon = _n
+drop if renglon > 1
 save "$sharelatex\DB\pilot_casefiles_wod.dta", replace
 ********************************************************************************
 

@@ -1,15 +1,18 @@
 *Cleaning of lawyer names and office
 
-use "$sharelatex\DB\pilot_casefiles.dta", clear
+use "$sharelatex\DB\scaleup_casefiles_wod.dta", clear
 
-
+ 
 *************************
 *		DESPACHO		*
 *************************
 
 
 *Remove blank spaces
-gen despacho_actor=stritrim(trim(itrim(upper(despachoactor))))
+gen despacho_actor=stritrim(trim(itrim(upper(despacho_ac))))
+
+*Manual cleaning
+replace despacho_actor="GUTIERREZ MARTINEZ" if nombre_abogado1_ac=="ENRIQUE GUTIERREZ MARTINEZ" & despacho_ac=="COZAYATL" 
 
 *Remove special characters
 gen newname = "" 
@@ -30,12 +33,13 @@ replace despacho_actor = subinstr(despacho_actor, " & ", " ", .)
 replace despacho_actor = subinstr(despacho_actor, "&", "", .)
 replace despacho_actor = subinstr(despacho_actor, " Y ", " ", .)
 replace despacho_actor = subinstr(despacho_actor, ",", "", .)
-replace despacho_actor = subinstr(despacho_actor, "Ñ", "N", .)
+replace despacho_actor = subinstr(despacho_actor, "�", "N", .)
 replace despacho_actor = subinstr(despacho_actor, " S C", " SC", .)
 replace despacho_actor = subinstr(despacho_actor, " SC", " ", .)
 replace despacho_actor = subinstr(despacho_actor, " SA DE CV", " ", .)
 replace despacho_actor = subinstr(despacho_actor, "ABOGADOS", "", .)
 replace despacho_actor = subinstr(despacho_actor, "ABOGADO", " ", .)
+replace despacho_actor = subinstr(despacho_actor, "BUFETE JURIDICO", " ", .)
 replace despacho_actor = subinstr(despacho_actor, "ASOCIADOS", " ", .)
 replace despacho_actor = subinstr(despacho_actor, "ASOCIADO", " ", .)
 replace despacho_actor = subinstr(despacho_actor, "ASOSCIADO", " ", .)
@@ -52,9 +56,8 @@ sort gp_despacho despacho_actor
 by gp_despacho : replace despacho_actor=despacho_actor[1]
 
 *Manual cleaning
-replace despacho_actor="NO MENCIONA" if despacho_actor=="NO MECIONA" | despacho_actor=="NO ESPECIFICA"
+replace despacho_actor="NO MENCIONA" if despacho_actor=="NO MENCINA" | despacho_actor=="NO ESPECIFICA"
 replace despacho_actor="SALFRA" if despacho_actor=="AL RA"
-
 
 *************************
 *		 ABOGADO		*
@@ -63,7 +66,7 @@ replace despacho_actor="SALFRA" if despacho_actor=="AL RA"
 forvalues j=1/3 {
 
 	*Remove blank spaces
-	gen nombre_abogado_`j'=stritrim(trim(itrim(upper(nombreabogado`j'))))
+	gen nombre_abogado_`j'=stritrim(trim(itrim(upper(nombre_abogado`j'_ac))))
 	
 	*Remove special characters
 	gen newname = "" 
@@ -77,10 +80,10 @@ forvalues j=1/3 {
 	}
 	replace nombre_abogado_`j'=newname
 	drop newname length
-
+	
 	*Basic name cleaning 
-	replace nombre_abogado_`j' = subinstr(nombre_abogado_`j', "Ñ", "N", .)
-	//replace nombre_abogado_`j' = subinstr(nombre_abogado_`j', """, "", .)
+	replace nombre_abogado_`j' = subinstr(nombre_abogado_`j', "�", "N", .)
+	replace nombre_abogado_`j' = subinstr(nombre_abogado_`j', "�", "", .)
 	replace nombre_abogado_`j' = subinstr(nombre_abogado_`j', "'", "", .)
 
 	replace nombre_abogado_`j'=stritrim(trim(itrim(upper(nombre_abogado_`j'))))
@@ -188,7 +191,7 @@ replace despacho_actor=abogados_orden if missing(despacho_actor) & repeats>=5
 
 
 *Ignore "NO MENCIONA" and "PROCURADURIA" cases
-replace gp_despacho=. if inlist(gp_despacho,1,5,32)
+replace gp_despacho=. if inlist(gp_despacho,2,49,12)
 
 *Encodes the gp_despacho id that are essentially the same
 *later on we recode them
@@ -226,7 +229,7 @@ forvalues i=1/`max' {
 		recode gp_despacho (`m_`j'' = `m_1') 
 		local j=`j'+1
 		}
-	}
+	}	
 
 *Homologation names
 bysort  gp_despacho : gen office_emp_law=despacho_actor[1] if !missing(despacho_actor) 
@@ -240,6 +243,7 @@ egen gp_office_emp_law=group(office_emp_law)
 bysort gp_office_emp_law : replace repeats=_N
 replace repeats=. if missing(gp_office_emp_law)
 
+
 ********************************************************************************
 ***								FINAL VARIABLES  			   			     ***
 ********************************************************************************
@@ -248,5 +252,5 @@ replace repeats=. if missing(gp_office_emp_law)
  office_emp_law gp_office_emp_law nombre_abogado_* abogados_orden gp_orden repeats
 */
 
-save "$sharelatex\DB\pilot_casefiles.dta", replace
 
+save "$sharelatex\DB\scaleup_casefiles_wod.dta", replace

@@ -40,11 +40,12 @@ gen antiguedad_F=fecha_salida_F-fecha_entrada_F
 *replace prevencion="" if prevencion=="NA"
 *destring prevencion, replace 
 
-*foreach var in tipodeabogado trabajadordeconfianza{
+foreach var in tipodeabogado trabajadordeconfianza{
 *destring `var', gen(`var'_M) force
-*}
+gen `var'_M =  `var'
+}
 
-gen tipodeabogado_M = tipodeabogado
+cap gen tipodeabogado_M = tipodeabogado
 
 replace tipodeabogado_M = tipodeabogado_M == 3
 

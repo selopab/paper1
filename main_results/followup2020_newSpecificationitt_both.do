@@ -183,6 +183,7 @@ replace ganancia = 0 if missing(ganancia) //& modoTermino==2
 replace fechaTermino = fechaTerminoAux if missing(fechaTermino) 
 format fechaTermino %td
 gen months=(fechaTermino-fecha)/30
+replace months = 0 if months<0
 gen npv=.
 
 replace npv=(ganancia/(1+(${int})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
@@ -193,8 +194,10 @@ replace npv=(ganancia/(1+(${int})/100)^months)-${pago_pub} if abogado_pub==1
 gen asinhNPV = asinh(npv)
 
 gen gananciaImputed = ganancia
-replace gananciaImputed = liq_total_laudo_avg if !missing(liq_total_laudo_avg) ///
-//& !missing(liq_laudopos) & modoTermino==2
+replace gananciaImputed = liq_total_laudo_avg if  ganancia==0 & modoTermino==2
+
+///!missing(liq_total_laudo_avg) 
+//& !missing(liq_laudopos) 
 
 gen npvImputed=.
 replace npvImputed=(gananciaImputed/(1+(${int})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
