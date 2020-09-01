@@ -53,9 +53,19 @@ replace fechadedemanda = "" if strpos(fechadedemanda, "-7")
 gen fechaDemanda_M = date(fechadedemanda, "DMY") 
 gen codingDate = date(fechadecaptura, "DMY")
 split fechadecaptura, p("/")
+
+foreach var in indemnizaciónmonto salarioscaídosmonto primadeantigüedadmonto vacacionesmonto ///
+primavacacionalmonto aguinaldomonto horasextramonto díasmonto primadominicalmonto ///
+descansosemanalmonto descansoobligatoriomonto utilidadesmonto otrasprestacionesmonto{
+	destring `var', force replace
+	replace `var' = 0 if missing(`var')
+}
+
 save "$pilot3\out\inicialesP1Faltantes.dta", replace
 
 sort junta exp anio
+by junta exp anio:  gen numActoresN = _N
+//by junta exp anio: gen valorTotal = sum(c_total)
 quietly by junta exp anio:  gen dup = cond(_N==1,0,_n)
 replace dup=1 if dup==0
 keep if dup==1

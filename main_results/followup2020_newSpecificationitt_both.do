@@ -6,17 +6,18 @@ Columns (1)-(8)
 */
 ********************************************************************************
 global int=3.43			/* Interest rate */
+global int2 = 2.22		/* Interest rate (ROBUSTNESS)*/
 global perc_pag=.30		/* Percentage of payment to private lawyer */
 global pago_pub=0		/* Payment to public lawyer */
 global pago_pri=2000	
 
-local controls i.abogado_pub
-local imputedControls i.tipodeabogadoImputed
+local controls i.abogado_pub numActores
+//local imputedControls i.tipodeabogadoImputed
 ********************************************************************************
 use "$scaleup\DB\scaleup_operation.dta", clear
 rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using "$scaleup\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$sharelatex\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
 merge m:1 junta exp anio using "$scaleup\DB\scaleup_predictions.dta", nogen keep(1 3)
 
 *Notified casefiles
@@ -33,7 +34,7 @@ gen fecha=date(fecha_lista,"YMD")
 format fecha %td
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-trabajador_base liq_total_laudo_avg
+trabajador_base liq_total_laudo_avg numActores
 
 gen phase=2
 save "$paper\DB\temp_p2", replace
@@ -47,10 +48,10 @@ replace p_actor=(p_actor==1)
 drop if tratamientoquelestoco==0
 rename tratamientoquelestoco treatment
 
-gen liq_total_laudo_avg =  liq_laudopos * prob_laudopos
+gen liq_total_laudo_avg =  liq_laudopos * (prob_laudopos/prob_laudos)
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-trabajador_base liq_total_laudo_avg
+trabajador_base liq_total_laudo_avg numActores
 
 append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
@@ -101,18 +102,20 @@ keep if renglon==1
 //Merge nuevas iniciales-----------------------------
 
 merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
-keep(1 3) gen(_mNuevasIniciales) keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M)
-//
+keep(1 3) gen(_mNuevasIniciales) keepusing(abogado_pubN numActoresN)
+//keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M numActoresN)
 
 //gen fechaDemanda = date(fecha, "YMD")
 gen fechaDemanda = fecha
-*foreach var in fechaDemanda tipodeabogado{
-*replace `var' = `var'_M if missing(`var') & `var'_M>0
-*}
 
-replace abogado_pub = tipodeabogado_M if missing(abogado_pub)
+foreach var in numActores abogado_pub{
+replace `var' = `var'N if missing(`var') & !missing(`var'N)
+}
 
-replace trabajador_base = abs(trabajadordeconfianza_M-1) if !missing(trabajadordeconfianza_M)
+
+gen missingCasefiles = missing(numActores) | missing(abogado_pub)
+
+*replace trabajador_base = abs(trabajadordeconfianza_M-1) if !missing(trabajadordeconfianza_M)
 tostring anio, gen(s_anio)
 gen fechaArtificial = s_anio + "-01-" + "01"
 gen fechaDemandaImputed = fechaDemanda
@@ -122,10 +125,9 @@ gen trabajador_baseImputed = trabajador_base
 replace trabajador_baseImputed = 2 if trabajador_baseImputed ==0
 replace trabajador_baseImputed = 0 if missing(trabajador_baseImputed)
 
-gen tipodeabogadoImputed = tipodeabogado
-replace tipodeabogadoImputed = 0 if missing(tipodeabogadoImputed)
+*gen tipodeabogadoImputed = tipodeabogado
+*replace tipodeabogadoImputed = 0 if missing(tipodeabogadoImputed)
 
-gen missingCasefiles =missing(tipodeabogado_M)
 bysort anio exp: gen order = _n
 
 *Drop conciliator observations
@@ -137,7 +139,8 @@ replace cant_convenio = cant_convenio_exp if missing(cant_convenio)
 replace cant_convenio = cant_convenio_ofirec if missing(cant_convenio)
 replace cant_convenio = 0 if modo_termino_expediente == 6 & missing(cant_convenio)
 merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-
+merge 1:1 junta exp anio using "$sharelatex\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
+replace liq_total_laudo_avg = liq_total_laudo_avgM if missing(liq_total_laudo_avg)
 /*
 --------------+-----------------------------------
 1)           AG |         18        5.70        5.70
@@ -185,9 +188,13 @@ format fechaTermino %td
 gen months=(fechaTermino-fecha)/30
 replace months = 0 if months<0
 gen npv=.
+gen npv_robust = .
 
 replace npv=(ganancia/(1+(${int})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
 replace npv=(ganancia/(1+(${int})/100)^months)-${pago_pub} if abogado_pub==1 
+
+replace npv_robust=(ganancia/(1+(${int2})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
+replace npv_robust=(ganancia/(1+(${int2})/100)^months)-${pago_pub} if abogado_pub==1 
 
 *replace npv = 0 if missing(npv) & !missing(modoTermino)
 
@@ -202,11 +209,16 @@ replace gananciaImputed = liq_total_laudo_avg if  ganancia==0 & modoTermino==2
 gen npvImputed=.
 replace npvImputed=(gananciaImputed/(1+(${int})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
 replace npvImputed=(gananciaImputed/(1+(${int})/100)^months)-${pago_pub} if abogado_pub==1
+
+gen npvImputed_robust=.
+replace npvImputed_robust=(gananciaImputed/(1+(${int2})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
+replace npvImputed_robust=(gananciaImputed/(1+(${int2})/100)^months)-${pago_pub} if abogado_pub==1
+
 *replace npvImputed = 0 if missing(npv) & !missing(modoTermino)
 
 gen asinhNPVImputed = asinh(npvImputed)
-
-
+gen asinhNPVImputed_robust = asinh(npvImputed_robust)
+replace numActores = 0 if missing(numActores)
 ********************************************************************************
 *																			   *
 *							log(NPV)										   *
@@ -220,7 +232,7 @@ gen asinhNPVImputed = asinh(npvImputed)
 *Primero sin controles
 	
 *1) Just treatment
-reg asinhNPV i.treatment, robust cluster(fecha)
+reg asinhNPV i.treatment if !missing(asinhNPVImputed), robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
 outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", replace ctitle("asinhNPV") ///
@@ -228,29 +240,33 @@ outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.x
 	addnote("Controls: `controls'") 
 	
 *2) Treatment presence interaction
-reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor, robust cluster(fecha)	
+reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui su asinhNPV if e(sample) & p_actor == 1
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", append ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
-reg asinhNPV i.treatment `controls', robust cluster(fecha)
+reg asinhNPV i.treatment `controls' i.treatment#i.missingCasefiles if !missing(asinhNPVImputed), robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", append ctitle("asinhNPV. Controls") ///
-	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
+	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment ///
+	missingCasefiles 1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
 *4) Treatment presence interaction + casefile level controls
-reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' , robust cluster(fecha)	
+reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' i.treatment#i.missingCasefiles if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui su asinhNPV if e(sample) & p_actor == 1
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", append ctitle("asinhNPV. Controls") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles ///
+1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
+
+* 5) 
 
 ***********************
 * Imputing calculator *
@@ -276,22 +292,36 @@ outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImput
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
-reg asinhNPVImputed i.treatment `controls' , robust cluster(fecha)
+reg asinhNPVImputed i.treatment `controls' i.treatment#i.missingCasefiles, robust cluster(fecha)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
 outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
-	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor ///
+	 `controls' i.treatment#i.missingCasefiles)
 
 *4) Treatment presence interaction + casefile level controls
-reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
+reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls' i.treatment#i.missingCasefiles, robust cluster(fecha)	
 	qui su asinhNPVImputed if e(sample) & p_actor ==1
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
 outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles ///
+1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
+
+*5) Treatment presence interaction + casefile level controls 
+reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls' i.treatment#i.missingCasefiles, robust cluster(fecha)	
+	qui su asinhNPVImputed if e(sample) & p_actor ==1
+	local IntMean=r(mean)
+	qui su asinhNPVImputed if e(sample)
+	local DepVarMean=r(mean)
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. rOBUST") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles ///
+1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
 
+
+/*
 *******************************************************************************
 *																			  *
 *					Private lawyers only 									  *

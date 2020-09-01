@@ -34,6 +34,9 @@ rename sueldo salario_diario
 *append using "$sharelatex\DB\scaleup_paired_courts.dta", force
 keep if inlist(junta, 2, 7, 9, 11, 16)
 
+bysort junta exp anio:  gen numActores = _N
+by junta exp anio: gen valorTotal = sum(c_total)
+
 duplicates drop  exp anio junta, force
 
 

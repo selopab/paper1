@@ -66,6 +66,9 @@ do "$sharelatex\DoFiles\cleaning\name_cleaning_pilot_rep.do"
 
 *DB Calculadora without duplicates (WOD)
 use "$sharelatex\DB\pilot_casefiles.dta", clear
+bysort junta expediente anio:  gen numActores = _N
+by junta expediente anio: gen valorTotal = sum(c_total)
+
 //duplicates tag folio, gen(tag)
 //keep if tag==0
 gen missingLiqLaudo = missing(liq_laudopos)

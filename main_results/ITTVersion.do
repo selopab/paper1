@@ -40,24 +40,6 @@ keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_a
 append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
 
-
-*Follow-up (more than 5 months)
-merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen
-merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-
-*Settlement
-replace convenio_2m=seconcilio if missing(convenio_2m)
-replace convenio_2m=seconcilio if seconcilio==1
-
-replace convenio_5m=convenio_2m if missing(convenio_5m)
-replace convenio_5m=convenio_2m if convenio_2m==1
-
-replace convenio_m5m=convenio_5m if missing(convenio_m5m)
-replace convenio_m5m=convenio_5m if convenio_5m==1
-replace convenio_m5m = 1 if modoTermino == 3
-replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
-replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
-
 ********************************************************************************
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
@@ -97,6 +79,24 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
+*Follow-up (more than 5 months)
+merge 1:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+
+*Settlement
+replace convenio_2m=seconcilio if missing(convenio_2m)
+replace convenio_2m=seconcilio if seconcilio==1
+
+replace convenio_5m=convenio_2m if missing(convenio_5m)
+replace convenio_5m=convenio_2m if convenio_2m==1
+
+replace convenio_m5m=convenio_5m if missing(convenio_m5m)
+replace convenio_m5m=convenio_5m if convenio_5m==1
+replace convenio_m5m = 1 if modoTermino == 3
+replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
+
+
 	*********************************
 	*			PHASE 1				*
 	*********************************
@@ -107,7 +107,7 @@ keep if renglon==1
 	local DepVarMean = r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", replace ctitle("Same day. P1") ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) ///
-	addstat(Dependent Variable Mean, `DepVarMean')  
+	addstat(Dependent Variable Mean, `DepVarMean')  dec(3)
 
 
 	*Interaction employee was present
@@ -120,7 +120,7 @@ keep if renglon==1
 	local DepVarMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P1")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	
 	*********************************
@@ -133,7 +133,7 @@ keep if renglon==1
 	local DepVarMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	
 	*Interaction employee was present
@@ -146,7 +146,7 @@ keep if renglon==1
 	local DepVarMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
 	
 	*********************************
 	*			POOLED				*
@@ -162,7 +162,7 @@ keep if renglon==1
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 
 	
@@ -176,7 +176,7 @@ keep if renglon==1
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled. Probit")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
 	*2 months
 	reg convenio_2m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui su convenio_2m if e(sample)
@@ -185,7 +185,8 @@ keep if renglon==1
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("2M. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
+	
 	*5 months
 	reg convenio_5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui su convenio_5m if e(sample)
@@ -194,7 +195,7 @@ keep if renglon==1
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("5M. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	*Long run
 	reg convenio_m5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
@@ -206,7 +207,7 @@ keep if renglon==1
 	local IntMean=r(mean)
 	outreg2 using  "$sharelatex/Tables/reg_results/treatment_effectsITT.xls", append ctitle("Long Run. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
+	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 
 
