@@ -1,3 +1,4 @@
+
 * TREATMENT EFFECTS - ITT - con merge a faltanP1
 /*Table 4׺  Treatment Effects*/
 /*
@@ -5,12 +6,19 @@ This table estimates the main treatment effects for both experimental phases.
 Columns (1)-(8)
 */
 ********************************************************************************
-****************************
-set scheme s2color
+global int=3.43			/* Interest rate */
+global int2 = 2.22		/* Interest rate (ROBUSTNESS)*/
+global perc_pag=.30		/* Percentage of payment to private lawyer */
+global pago_pub=0		/* Payment to public lawyer */
+global pago_pri=2000	
+
+local controls i.abogado_pub numActores
+//local imputedControls i.tipodeabogadoImputed
+********************************************************************************
 use "$scaleup\DB\scaleup_operation.dta", clear
 rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using "$scaleup\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$sharelatex\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
 merge m:1 junta exp anio using "$scaleup\DB\scaleup_predictions.dta", nogen keep(1 3)
 
 *Notified casefiles
@@ -27,7 +35,7 @@ gen fecha=date(fecha_lista,"YMD")
 format fecha %td
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-trabajador_base liq_total_convenio
+trabajador_base liq_total_laudo_avg numActores liq_total_laudo
 
 gen phase=2
 save "$paper\DB\temp_p2", replace
@@ -41,10 +49,12 @@ replace p_actor=(p_actor==1)
 drop if tratamientoquelestoco==0
 rename tratamientoquelestoco treatment
 
-//gen liq_convenio_laudo_avg =  liq_convenio * prob_convenio
-ren liq_convenio liq_total_convenio
+gen liq_total_laudo_avg =  liq_laudopos * (prob_laudopos/prob_laudos)
+
+ren liq_laudopos liq_total_laudo
+
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-trabajador_base liq_total_convenio
+trabajador_base liq_total_laudo_avg numActores liq_total_laudo
 
 append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
@@ -92,6 +102,38 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
+//Merge nuevas iniciales-----------------------------
+
+merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
+keep(1 3) gen(_mNuevasIniciales) keepusing(abogado_pubN numActoresN)
+//keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M numActoresN)
+
+//gen fechaDemanda = date(fecha, "YMD")
+gen fechaDemanda = fecha
+
+foreach var in numActores abogado_pub{
+replace `var' = `var'N if missing(`var') & !missing(`var'N)
+}
+
+gen missingCasefiles = missing(numActores) | missing(abogado_pub)
+
+*replace trabajador_base = abs(trabajadordeconfianza_M-1) if !missing(trabajadordeconfianza_M)
+tostring anio, gen(s_anio)
+gen fechaArtificial = s_anio + "-01-" + "01"
+gen fechaDemandaImputed = fechaDemanda
+replace fechaDemandaImputed = date(fechaArtificial, "YMD") if missing(fechaDemandaImputed) | fechaDemandaImputed <0 
+
+gen trabajador_baseImputed = trabajador_base
+replace trabajador_baseImputed = 2 if trabajador_baseImputed ==0
+replace trabajador_baseImputed = 0 if missing(trabajador_baseImputed)
+
+*gen tipodeabogadoImputed = tipodeabogado
+*replace tipodeabogadoImputed = 0 if missing(tipodeabogadoImputed)
+
+bysort anio exp: gen order = _n
+
+*Drop conciliator observations
+*drop if treatment==3
 ********************************************************************************
 
 merge 1:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
@@ -99,7 +141,8 @@ replace cant_convenio = cant_convenio_exp if missing(cant_convenio)
 replace cant_convenio = cant_convenio_ofirec if missing(cant_convenio)
 replace cant_convenio = 0 if modo_termino_expediente == 6 & missing(cant_convenio)
 merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-
+merge 1:1 junta exp anio using "$sharelatex\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
+replace liq_total_laudo_avg = liq_total_laudo_avgM if missing(liq_total_laudo_avg)
 /*
 --------------+-----------------------------------
 1)           AG |         18        5.70        5.70
@@ -111,55 +154,29 @@ merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta
 --------------+-----------------------------------
 */
 
-
-gen fechaTerminoAux = date("$S_DATE", "DMY") //date("$dateCode", "YMD") 
-format fechaTerminoAux
-
 replace modoTermino = modo_termino_expediente if missing(modoTermino)
 replace modoTermino = 2 if missing(modoTermino)
 
-egen fechaTermino = rowmax(fecha_termino_ofirec fecha_termino_exp fechaOfirec fechaExp)
-*replace fechaTermino = fecha_termino_exp if missing(fechaTermino)
-*replace fechaTermino = fechaOfirec if missing(fechaTermino)
-*replace fechaTermino = fechaTerminoAux if missing(fechaTermino) | modo_termino_expediente==2 | fechaTermino<0
-*
-gen ganancia = cant_convenio 
-replace ganancia = cant_convenio_exp if missing(ganancia)
-replace ganancia = cant_convenio_ofirec if missing(ganancia)
-replace ganancia = cantidadPagada if missing(ganancia) & cantidadPagada != 0 //liq_convenio
-replace ganancia = cantidadOtorgada if missing(ganancia)
 
-replace ganancia = 0 if [modoTermino == 4 & missing(ganancia)]| modoTermino==5 | [modoTermino==6  & missing(ganancia)] ///
-| [modoTermino==1  & missing(ganancia)]
 
-gen ratioGananciaConvenio = ganancia/liq_total_convenio
-
+#delimit ;
+*Graph only lower 99%;
 twoway (kdensity liq_total_laudo if treatment==2 & liq_total_laudo<650000 & modoTermino==2 & abogado_pub==0,  lwidth(medthick) lpattern(solid) color(black)) ||
 		(kdensity liq_total_laudo if treatment==1 & liq_total_laudo<650000 & modoTermino==2 & abogado_pub==0 , lpattern(dash) lcolor(gs10) lwidth(medthick)),
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Caluculator predicted settlement") title("Calculator Predicted Amounts for Court Win") 
 		subtitle("Unresoved Cases, By treatment, truncated at 99%") ytitle("kdensity") scheme(s2mono) graphregion(color(white)) ylabel(0 (0.000006) 0.000006);
 #delimit cr
+graph export "$sharelatex/Figures/Calculator_CourtWin_Unresolved.pdf", replace 
 
-#delimit ;
-*Graph only lower 95%;
-twoway (kdensity ratioGananciaConvenio if treatment==2 & ratioGananciaConvenio<3.5 & modoTermino==3 & abogado_pub==0,  lwidth(medthick) lpattern(solid) color(black)) || ||
-	   (kdensity ratioGananciaConvenio if treatment==1 & ratioGananciaConvenio<3.5 & modoTermino==3 & abogado_pub==0, lpattern(dash) lcolor(gs10) lwidth(medthick)),
-		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Ratio of Amounts")  scheme(s2mono) graphregion(color(white));
-		//title("Ratio of Actual and Predicted Settlement Amounts") subtitle("All hearings, truncated at 95%") 
-		ytitle("kdensity");
+forvalues i = 1/2{
+    #delimit ;
+   twoway (kdensity liq_total_laudo if treatment==2 & liq_total_laudo<650000 & modoTermino==2 & abogado_pub==0 & phase ==`i',  lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity liq_total_laudo if treatment==1 & liq_total_laudo<650000 & modoTermino==2 & abogado_pub==0  & phase ==`i', lpattern(dash) lcolor(gs10) lwidth(medthick)),
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Caluculator predicted settlement") title("Calculator Predicted Amounts for Court Win") 
+		subtitle("Unresoved Cases, By treatment, truncated at 99%") ytitle("kdensity") scheme(s2mono) graphregion(color(white)) ylabel(0 (0.000006) 0.000006);
 #delimit cr
-
-graph export "$sharelatex\Figures\kdensityRatio.pdf", replace
-
-
-
-
-
-
-
-
-
-
+graph export "$sharelatex/Figures/Calculator_CourtWin_Unresolved_P`i'.pdf", replace 
+}
 
 
 

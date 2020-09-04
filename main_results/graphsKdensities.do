@@ -115,29 +115,37 @@ gen timeToTreat = fecha_treat - fecha_filing
 gen lengthSinceTreat = fechaTermino - fecha_treat
 
 /* Graphs */
-
+twoway (kdensity npv_pub, xline(0, lpattern(dash) lcolor(gs10) lwidth(medthick)) lwidth(medthick) lpattern(solid) color(black)) ///
+		(kdensity npv_pri1, lwidth(medthick) lpattern(dash) color(gs6)) ///
+		(kdensity npv_pri2, lwidth(medthick) lpattern(dot) color(gs9)) ///
+		(kdensity npv_pri3, lwidth(medthick) lpattern(dash_dot) color(gs12)) , ///
+		scheme(s2mono) graphregion(color(white)) xtitle("NPV") ytitle("Density") ///
+		legend(order(1 "Pub" 2 "Pri 2000" 3 "Pri 1000" 4 "Pri 500") rows(1))  ///
+		name(pdf, replace) title("PDF")
+		
+		
 #delimit ;
 *Graph only lower 95%. Settlement;
-twoway kdensity length if treatment==2 & length<10000 & length>=0 & abogado_pub==0 , lpattern(line) lcolor(blue) ||
-		kdensity length if treatment==1 & length<10000 & length>=0 & abogado_pub==0, lpattern(line) lcolor(red)
-		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of All Cases") subtitle("Cases with valid filing dates") ytitle("kdensity");
+twoway (kdensity length if treatment==2 & length<10000 & length>=0 & abogado_pub==0,  lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity length if treatment==1 & length<10000 & length>=0 & abogado_pub==0, lpattern(dash) lcolor(gs10) lwidth(medthick)), 
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of All Cases") subtitle("Cases with valid filing dates") ytitle("kdensity") scheme(s2mono) graphregion(color(white));
 #delimit cr
 graph export "$sharelatex/Figures/lengthAll.pdf", replace 
 
 #delimit ;
 *Graph only lower 95%. Settlement;
-twoway kdensity length if treatment==2 & length<10000 & length>=0 & (modoTermino==3) & abogado_pub==0 , lpattern(line) lcolor(blue) ||
-		kdensity length if treatment==1 & length<10000 & length>=0 & modoTermino==3 & abogado_pub==0, lpattern(line) lcolor(red)
-		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of Settled Cases") subtitle("Cases with valid filing dates") ytitle("kdensity");
+twoway (kdensity length if treatment==2 & length<10000 & length>=0 & (modoTermino==3) & abogado_pub==0 ,  lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity length if treatment==1 & length<10000 & length>=0 & modoTermino==3 & abogado_pub==0, lpattern(dash) lcolor(gs10) lwidth(medthick)), 
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of Settled Cases") subtitle("Cases with valid filing dates") ytitle("kdensity") scheme(s2mono) graphregion(color(white));
 #delimit cr
 graph export "$sharelatex/Figures/lengthSettlement.pdf", replace 
 
 
 #delimit ;
 *Graph only lower 95%. Court ruling;
-twoway kdensity length if treatment==2 & length<10000 & length>=0 & (modoTermino==6) & abogado_pub==0 , lpattern(line) lcolor(blue) ||
-		kdensity length if treatment==1 & length<10000 & length>=0 & modoTermino==6 & abogado_pub==0, lpattern(line) lcolor(red)
-		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of Cases with Court Judgments") subtitle("Cases with valid filing dates") ytitle("kdensity");
+twoway (kdensity length if treatment==2 & length<10000 & length>=0 & (modoTermino==6) & abogado_pub==0 ,  lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity length if treatment==1 & length<10000 & length>=0 & modoTermino==6 & abogado_pub==0, lpattern(dash) lcolor(gs10) lwidth(medthick)),
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Length of case (days)") title("Length of Cases with Court Judgments") subtitle("Cases with valid filing dates") ytitle("kdensity") scheme(s2mono) graphregion(color(white));
 #delimit cr
 graph export "$sharelatex/Figures/lengthRuling.pdf", replace 
 

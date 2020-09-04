@@ -5,10 +5,13 @@ Column (9)
 */
 ********************************************************************************
 
+*Set controls.
+local controls i.anio i.junta i.phase i.numActores
+
 use "$scaleup/DB/scaleup_operation.dta", clear
 rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using "$scaleup/DB/scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$sharelatex/DB/scaleup_casefiles_wod.dta" , nogen  keep(1 3)
 
 *Notified casefiles
 keep if notificado==1
@@ -29,7 +32,7 @@ gen time_hearing=substr(horario_aud,strpos(horario_aud," "),length(horario_aud))
 egen time_hr=group(time_hearing)
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-	time_hearing time_hr /* addresses_* distance  duration */
+	time_hearing time_hr numActores
 gen phase=2
 save "$paper\DB\temp_p2", replace
 
@@ -48,7 +51,7 @@ gen time_hearing=substr(horarioaudiencia,strpos(horarioaudiencia," "),length(hor
 egen time_hr=group(time_hearing)
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-	time_hearing time_hr /*addresses_*  distance duration */
+	time_hearing time_hr numActores
 append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
 
@@ -94,6 +97,8 @@ keep if renglon==1
 *Drop conciliator observations
 drop if treatment==3
 
+replace anio = 2010 if anio < 2010
+replace numActores = 3 if numActores>3
 
 ********************************************************************************
 ********************************************************************************
@@ -112,12 +117,12 @@ gen treat_p_actor=treatment*p_actor
 drop if treatment==3
 
 *OLS (FS)
-reg p_actor i.treatment time_instrument i.junta, r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", replace ctitle("OLS FS")
+reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
+outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", replace ctitle("OLS FS") dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
 
 *Probit (FS)
-probit p_actor i.treatment time_instrument i.junta, r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS")
+probit p_actor i.treatment time_instrument `controls', r cluster(fecha)
+outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
 
 
 cap drop xb
@@ -127,12 +132,13 @@ gen gen_resid_pr = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/(
 
 *CF
 *Probit - Interaction
-reg seconcilio i.treatment##i.p_actor i.junta gen_resid_pr, vce(bootstrap, reps(1000)) cluster(fecha)
+reg seconcilio i.treatment##i.p_actor gen_resid_pr `controls', vce(bootstrap, reps(1000)) cluster(fecha)
 qui su seconcilio if e(sample)
 local DepVarMean=r(mean)
 qui su p_actor if e(sample)
 local IntMean=r(mean)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')
+outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") ///
+addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr)
 
 	
 
@@ -143,8 +149,8 @@ foreach var of varlist time_hr2-time_hr8 {
 	}
 	
 *Probit (FS)
-probit p_actor i.treatment i.junta time_hr2-time_hr8, r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS")
+probit p_actor i.treatment i.junta time_hr2-time_hr8 `controls', r cluster(fecha)
+outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr )
 
 cap drop xb
 predict xb, xb
@@ -153,10 +159,12 @@ gen gen_resid_pr8 = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/
 
 *CF
 *Probit - Interaction
-reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8, vce(bootstrap, reps(1000)) cluster(fecha)
+reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8 `controls', vce(bootstrap, reps(1000)) cluster(fecha)
+qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
 qui su seconcilio if e(sample)
 local DepVarMean=r(mean)
 qui su p_actor if e(sample)
 local IntMean=r(mean)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')
-
+outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
+ 

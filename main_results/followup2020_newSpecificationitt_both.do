@@ -1,8 +1,10 @@
-* TREATMENT EFFECTS - ITT - con merge a faltanP1
-/*Table 4׺  Treatment Effects*/
+* NPV results
 /*
-This table estimates the main treatment effects for both experimental phases.
-Columns (1)-(8)
+
+This do file creates several results: 
+1) followup table with NPV
+2) kdensities for imputed values
+
 */
 ********************************************************************************
 global int=3.43			/* Interest rate */
@@ -10,6 +12,8 @@ global int2 = 2.22		/* Interest rate (ROBUSTNESS)*/
 global perc_pag=.30		/* Percentage of payment to private lawyer */
 global pago_pub=0		/* Payment to public lawyer */
 global pago_pri=2000	
+global courtcollect=1.0 /* Recovery / Award ratio for court judgments */
+global winsorize=95 	/* winsorize level for NPV levels */
 
 local controls i.abogado_pub numActores
 //local imputedControls i.tipodeabogadoImputed
@@ -218,7 +222,65 @@ replace npvImputed_robust=(gananciaImputed/(1+(${int2})/100)^months)-${pago_pub}
 
 gen asinhNPVImputed = asinh(npvImputed)
 gen asinhNPVImputed_robust = asinh(npvImputed_robust)
-replace numActores = 0 if missing(numActores)
+
+**************
+* CW Coding 29 August 2020 *
+**************
+replace numActores=1 if numActores==0
+replace numActores=3 if numActores>3 & numActores~=.
+replace anio=2010 if anio<2010
+
+*Primero sin controles
+/*
+*CW Regs for Table
+replace treatment=treatment-1
+gen treat_present=p_actor*treatment
+
+*Col 1
+reg asinhNPV treatment  i.abogado_pub i.numActores i.missingCasefiles i.junta i.anio i.phase if asinhNPVImputed~=., robust cluster(fecha)
+
+*Col 2
+reg asinhNPV treatment i.p_actor treat_present i.abogado_pub i.numActores i.missingCasefiles i.junta i.anio i.phase if asinhNPVImputed~=., robust cluster(fecha)
+*treatment + treatment*present jointly significant at .0753
+
+*Cols 3 and 4 (toggle discuunt rate btween 3.43 and 2.22)
+reg asinhNPVImputed treatment i.p_actor treat_present i.abogado_pub i.numActores i.missingCasefiles i.junta i.anio i.phase , robust cluster(fecha)
+
+
+for var npv npvImputed: egen X_WZ=pctile(X), p(${winsorize})
+for var npv npvImputed: replace X=X_WZ if X>X_WZ & X~=.
+
+reg npv treatment i.p_actor treat_present i.abogado_pub i.numActores i.missingCasefiles i.junta i.anio i.phase if npvImputed~=. , robust cluster(fecha)
+
+reg npvImputed treatment i.p_actor treat_present i.abogado_pub i.numActores i.missingCasefiles i.junta i.anio i.phase if npvImputed~=. , robust cluster(fecha)
+
+exit
+*/
+
+/* Kdensities for emp presence */
+
+#delimit ;
+*Predicted outcomes for continuing cases - Phase 2;
+*Graph only lower 99%;
+twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed!=. & p_actor==1 & phase==1 , lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity npvImputed if treatment==1  & asinhNPVImputed!=. & p_actor==1  & phase==1, lpattern(dash) lcolor(gs10) lwidth(medthick)), 
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at Treatment, Phase 1") ytitle("kdensity") 
+		scheme(s2mono) graphregion(color(white));
+#delimit cr
+graph export "$sharelatex/Figures/OutcomesByTreatment_P1.pdf", replace 
+
+#delimit ;
+*Predicted outcomes for continuing cases - Phase 2;
+*Graph only lower 99%;
+twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed~=. & p_actor==1 & phase==2  ,  lwidth(medthick) lpattern(solid) color(black)) ||
+		(kdensity npvImputed if treatment==1  & asinhNPVImputed~=. & p_actor==1  & phase==2, lpattern(dash) lcolor(gs10) lwidth(medthick)), 
+		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at treatment, Phase 2") ytitle("kdensity") 
+		scheme(s2mono) graphregion(color(white));
+#delimit cr
+graph export "$sharelatex/Figures/OutcomesByTreatment_P2.pdf", replace 
+
+
+
 ********************************************************************************
 *																			   *
 *							log(NPV)										   *
