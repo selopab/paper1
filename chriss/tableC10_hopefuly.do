@@ -6,7 +6,7 @@ Columns (1)-(8)
 */
 ********************************************************************************
 ****************************
-local controls i.abogado_pub numActores i.missingCasefiles i.junta i.phase i.anio
+local controls i.abogado_pub i.numActores i.missingCasefiles i.junta i.phase i.anio
 
 
 use "$scaleup\DB\scaleup_operation.dta", clear
