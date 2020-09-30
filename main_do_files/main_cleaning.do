@@ -39,7 +39,14 @@ do ".\DoFiles\cleaning\DB_time_pref.do"
 *****************************
 
 do ".\DoFiles\importAppend2020Followups.do"
+do ".\DoFiles\cleaning_missingCasefiles.do"
+do ".\DoFiles\clean_missing_predictions.do"
 
+*****************************
+*		P3 results 		 	* 
+*****************************
+
+do ".\DoFiles\clean_pilot3.do"
 
 
 
