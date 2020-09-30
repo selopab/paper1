@@ -1,6 +1,6 @@
 //Clean inicialesP1Faltantes
 
-import delimited "$pilot3\inp\inicialesP1Faltantes2.csv", varn(1) clear
+import delimited ".\Raw\inicialesP1Faltantes2.csv", varn(1) clear
 
 *drop if exp=="NA" & junta=="NA" & anio=="NA"
 
@@ -61,7 +61,7 @@ descansosemanalmonto descansoobligatoriomonto utilidadesmonto otrasprestacionesm
 	replace `var' = 0 if missing(`var')
 }
 
-save "$pilot3\out\inicialesP1Faltantes.dta", replace
+save ".\DB\inicialesP1Faltantes.dta", replace
 
 sort junta exp anio
 by junta exp anio:  gen numActoresN = _N
@@ -94,4 +94,4 @@ ren género genN
 gen trabajador_baseN = abs(trabajadordeconfianza-1)
 gen c_antiguedadN = fechadesalida_d - fechadeentrada_d
 
-save "$pilot3\out\inicialesP1Faltantes_wod.dta", replace
+save ".\DB\inicialesP1Faltantes_wod.dta", replace

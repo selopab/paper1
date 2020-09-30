@@ -1,6 +1,6 @@
 *Cleaning of lawyer names and office
 
-use "$sharelatex\DB\scaleup_casefiles_wod.dta", clear
+use ".\DB\scaleup_casefiles_wod.dta", clear
 
  
 *************************
@@ -253,4 +253,4 @@ replace repeats=. if missing(gp_office_emp_law)
 */
 
 
-save "$sharelatex\DB\scaleup_casefiles_wod.dta", replace
+save ".\DB\scaleup_casefiles_wod.dta", replace

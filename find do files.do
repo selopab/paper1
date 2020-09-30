@@ -6,4 +6,4 @@ clear
 set more off
  
  
-rcd "$sharelatex/DoFiles"  : find *.do , match(CF_ITT.xlsx) show
+rcd "./DoFiles"  : find *.do , match(Append Encuesta Inicial Representante Actor.dta) show

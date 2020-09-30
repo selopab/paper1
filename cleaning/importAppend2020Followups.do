@@ -1,6 +1,6 @@
 /*Import July 2020 P2 Followup*/
 
-import excel "$sharelatex\Raw\P2jul2020Followup.xlsx", firstr clear
+import excel ".\Raw\P2jul2020Followup.xlsx", firstr clear
 drop if missing(Junta)
 drop Muestra50 
 
@@ -80,7 +80,7 @@ keep junta expediente anio modoTermino cantidadOtorgada cantidadPagada fechaOfir
 rename expediente exp
 gen phase = 2
 
-append using "$sharelatex\Terminaciones\Data\terminaciones.dta"
+append using ".\Terminaciones\Data\terminaciones.dta"
 replace phase = 1 if missing(phase)
-save "$sharelatex\Terminaciones\Data\followUps2020.dta", replace
+save ".\Terminaciones\Data\followUps2020.dta", replace
 

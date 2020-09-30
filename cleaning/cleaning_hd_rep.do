@@ -1,7 +1,7 @@
 *Cleaning HD Data
 
 *********************************HD DATA****************************************
-import delimited "$sharelatex\Raw\scaleup_hd.csv", clear 
+import delimited ".\Raw\scaleup_hd.csv", clear 
 
 
 *No negative values
@@ -35,9 +35,9 @@ lab var trabajador_base "at will worker"
 
 ********************************************************************************
 *Lawyers name cleaning
-do "$sharelatex\DoFiles\cleaning\name_cleaning_hd_rep.do"
+do ".\DoFiles\cleaning\name_cleaning_hd_rep.do"
 
 *Save dataset
-save "$sharelatex\DB\scaleup_hd.dta", replace
+save ".\DB\scaleup_hd.dta", replace
 
 

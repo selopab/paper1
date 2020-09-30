@@ -1,4 +1,4 @@
-use "$sharelatex/DB/pilot_operation.dta" , clear	
+use "./DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 rename expediente exp
 
@@ -42,8 +42,8 @@ drop if TAll==1
 drop if treatment==3
 
 sort junta exp anio fecha
-by junta exp anio: gen renglon = _n
-keep if renglon==1
+by junta exp anio: gen renglon2 = _n
+keep if renglon2==1
 
 ren (exp treatment) (expediente tratamientoquelestoco)
 
@@ -53,8 +53,8 @@ save `selectedCasefiles'
 *Generation of time/risk preference panel dataset with MxFLS and Phase1 data
 ********************************************************************************
 
-use "$sharelatex/Raw/Append Encuesta Inicial Representante Actor.dta" , clear
-merge m:1 folio using "$sharelatex\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
+use "./Raw/Append Encuesta Inicial Representante Actor.dta" , clear
+merge m:1 folio using ".\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
 merge m:1 junta expediente anio using `selectedCasefiles', nogen keep(3) keepusing(junta expediente anio)
 
 *Time Preferences
@@ -87,8 +87,8 @@ tempfile temp_2
 save `temp_2'
 
 
-use "$sharelatex/Raw/Append Encuesta Inicial Representante Demandado.dta" , clear
-merge m:1 folio using "$sharelatex\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
+use "./Raw/Append Encuesta Inicial Representante Demandado.dta" , clear
+merge m:1 folio using ".\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
 merge m:1 junta expediente anio using `selectedCasefiles', nogen keep(3) keepusing(junta expediente anio)
 
 *Time Preferences
@@ -116,15 +116,15 @@ save `temp_3'
 
 
 
-use "$sharelatex/Raw/Append Encuesta Inicial Actor.dta" , clear
-merge 1:1 folio using "$sharelatex\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
+use "./Raw/Append Encuesta Inicial Actor.dta" , clear
+merge 1:1 folio using ".\DB\pilot_casefiles_wod.dta", nogen keep(1 3)
 merge m:1 junta expediente anio using `selectedCasefiles', nogen keep(3) keepusing(junta expediente anio)
 
 *Cleaning
 
 *Age
 gen age=(date(c(current_date),"DMY")-A_1_1)/365
-replace age=year(date(c(current_date),"DMY"))-aonac if missing(age)
+replace age=year(date(c(current_date),"DMY"))-añonac if missing(age)
 
 rename A_3_1 numempleados
 
@@ -163,7 +163,7 @@ append using `temp_3'
 *Identify Datasets
 gen experiment=1
 	
-append using "$sharelatex\DB\mxfls.dta"
+append using ".\DB\mxfls.dta"
 replace experiment=0 if missing(experiment)
 replace fac_3b=1 if missing(fac_3b)
 replace party=0 if missing(party)
@@ -182,5 +182,5 @@ foreach l of local levels {
 	local i=`i'+1
 	}
 	
-save "$sharelatex\DB\time_pref.dta", replace
+save ".\DB\time_pref.dta", replace
 

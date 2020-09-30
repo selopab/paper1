@@ -9,7 +9,7 @@ set more off
 
 ********************************************************************************
 
-import delimited "$sharelatex\DB\scaleup_paired_courts.csv", clear
+import delimited ".\DB\scaleup_paired_courts.csv", clear
 
 drop salario_diario
 rename sueldo salario_diario
@@ -18,12 +18,12 @@ destring min_ley, force replace
 rename antig c_antiguedad
 destring c_antiguedad, force replace
 
-save "$sharelatex\DB\scaleup_paired_courts.dta", replace
+save ".\DB\scaleup_paired_courts.dta", replace
 
 
 ********************************************************************************
 
-import delimited "$sharelatex\DB\scaleup_casefiles.csv", clear
+import delimited ".\DB\scaleup_casefiles.csv", clear
 
 /***********************
    CLEANING VARIABLES
@@ -31,7 +31,7 @@ import delimited "$sharelatex\DB\scaleup_casefiles.csv", clear
 drop salario_diario
 rename sueldo salario_diario
 
-*append using "$sharelatex\DB\scaleup_paired_courts.dta", force
+*append using ".\DB\scaleup_paired_courts.dta", force
 keep if inlist(junta, 2, 7, 9, 11, 16)
 
 bysort junta exp anio:  gen numActores = _N
@@ -40,17 +40,17 @@ by junta exp anio: gen valorTotal = sum(c_total)
 duplicates drop  exp anio junta, force
 
 
-save "$sharelatex\DB\scaleup_casefiles_wod.dta", replace
+save ".\DB\scaleup_casefiles_wod.dta", replace
 
 *Lawyers name cleaning
-do "$sharelatex\DoFiles\cleaning\name_cleaning_scaleup.do"
+do ".\DoFiles\cleaning\name_cleaning_scaleup.do"
 
 ********************************************************************************
 *Settlements - after treatment
 *IMPORTANT: We only consider information regarding settlements
 
-import excel "$sharelatex\Raw\Expedientes archivados sin Modo de Termino.xlsx", sheet("Nuevo Control") cellrange(A2:AA951) firstrow case(lower) clear
-drop if missing(junta) & missing(exp) & missing(ao)
+import excel ".\Raw\Expedientes archivados sin Modo de Termino.xlsx", sheet("Nuevo Control") cellrange(A2:AA951) firstrow case(lower) clear
+drop if missing(junta) & missing(exp) & missing(año)
 
 destring cantidadpagada, replace force
 gen fecha_termino_ = date(fechatermino,"DMY")
@@ -58,32 +58,32 @@ format fecha_termino_ %td
 gen convenio_seg_=(strpos(upper(modotermino), "CONVENIO")!=0)
 gen cantidad_convenio_ = cantidadpagada if convenio_seg==1
 
-keep junta exp ao convenio_seg_ fecha_termino_ cantidad_convenio_
+keep junta exp año convenio_seg_ fecha_termino_ cantidad_convenio_
 tempfile temp_con_
 save `temp_con_'
 
-import excel "$sharelatex\Raw\Expedientes Calculadora y Conciliacion con juntas homologas_.xlsx", sheet("ListaSeguimientoIsaac") firstrow case(lower) clear
-duplicates drop junta exp ao, force
+import excel ".\Raw\Expedientes_Calculadora_y_Conciliacion_con_juntas_homologas_.xlsx", sheet("ListaSeguimientoIsaac") firstrow case(lower) clear
+duplicates drop junta exp año, force
 
 destring cantidadpagada, replace 
 gen fecha_termino = date(substr(fechatermino,1,10),"YMD")
 format fecha_termino %td
 gen convenio_seg = (strpos(upper(modotermino), "CONVENIO")!=0)
 gen cantidad_convenio = cantidadpagada if convenio_seg==1
-merge 1:1 junta exp ao using `temp_con_'
+merge 1:1 junta exp año using `temp_con_'
 replace fecha_termino=fecha_termino_ if _merge==3
 replace convenio_seg=convenio_seg_ if _merge==3
 replace cantidad_convenio=cantidad_convenio_ if _merge==3
 drop _merge
 
 keep if convenio_seg==1 
-keep junta expediente ao convenio_seg cantidad_convenio  fecha_termino 
+keep junta expediente año convenio_seg cantidad_convenio  fecha_termino 
 
 tempfile temp_con_seg
 save  `temp_con_seg'
 
 ********************************************************************************
-import delimited "$sharelatex\DB\scaleup_operation.csv", clear 
+import delimited ".\DB\scaleup_operation.csv", clear 
 
 
 *Checar con Moni Posili
@@ -323,7 +323,7 @@ egen dte=group(fecha_lista)
 keep if dte<=14
 
 *Merge with settlements after treatment
-merge m:1 junta exp ao using `temp_con_seg', keep(1 3) nogen 
+merge m:1 junta exp año using `temp_con_seg', keep(1 3) nogen 
 
 *Months after treatment
 gen fecha_treat=date(fecha_lista, "YMD")
@@ -344,16 +344,16 @@ replace convenio_seg_2m=1 if inrange(months_after_treat,0,2)
 gen convenio_seg_5m=convenio_seg 
 
 
-save "$sharelatex\DB\scaleup_operation.dta", replace
+save ".\DB\scaleup_operation.dta", replace
 
 
 
 ********************************************************************************
-import delimited "$sharelatex\DB\scaleup_predictions.csv", clear
+import delimited ".\DB\scaleup_predictions.csv", clear
 
 duplicates drop  exp anio junta, force
 
-save "$sharelatex\DB\scaleup_predictions.dta", replace
+save ".\DB\scaleup_predictions.dta", replace
 
 ********************************************************************************
 

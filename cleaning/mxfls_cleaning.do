@@ -2,23 +2,23 @@
 ********************************************************************************
 
 *Gender
-use "$sharelatex\Raw\mxfls\c_ls.dta", clear	
+use ".\Raw\mxfls\c_ls.dta", clear	
 duplicates drop folio ls, force
 
 *Education level
-merge 1:1 folio ls using "$sharelatex\Raw\mxfls\iiia_ed.dta", nogen
+merge 1:1 folio ls using ".\Raw\mxfls\iiia_ed.dta", nogen
 
 *Employment
-merge 1:1 folio ls using "$sharelatex\Raw\mxfls\iiia_tb.dta", nogen
+merge 1:1 folio ls using ".\Raw\mxfls\iiia_tb.dta", nogen
 
 *Age
-merge 1:1 folio ls using "$sharelatex\Raw\mxfls\iiib_portad.dta", nogen
+merge 1:1 folio ls using ".\Raw\mxfls\iiib_portad.dta", nogen
 
 *Time preference
-merge 1:1 folio ls using "$sharelatex\Raw\mxfls\iiib_pr.dta", nogen
+merge 1:1 folio ls using ".\Raw\mxfls\iiib_pr.dta", nogen
 
 *Expansion factor
-merge 1:m folio ls using "$sharelatex\Raw\mxfls\hh09w_b3b.dta", nogen
+merge 1:m folio ls using ".\Raw\mxfls\hh09w_b3b.dta", nogen
 
 
 
@@ -103,6 +103,6 @@ keep  fac_3b gen education  salario_diario numempleados horas_sem ///
 	c_horasextra annual_bonus giro beta_*
 	
 	
-save "$sharelatex\DB\mxfls.dta", replace	
+save ".\DB\mxfls.dta", replace	
 
 
