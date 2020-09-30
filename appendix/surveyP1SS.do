@@ -2,6 +2,7 @@
 */
 
 use "$sharelatex/DB/pilot_operation.dta" , clear	
+drop renglon
 replace junta=7 if missing(junta)
 rename expediente exp
 
