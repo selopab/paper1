@@ -7,7 +7,7 @@
 clear
 set more off
 cd "D:\MCLC\Pilot 1\information_sett\ReplicationFinal"
-qui do ".\DoFiles\tabnumlab.do"
+//qui do ".\DoFiles\tabnumlab.do"
 
 *********************
 *		Pilot 1		* 
@@ -25,7 +25,7 @@ do ".\DoFiles\cleaning\cleaning_scaleup.do"
 *		Historical data 	* 
 *****************************
 
-do ".\DoFiles\cleaning\cleaning_hd.do"
+do ".\DoFiles\cleaning\cleaning_hd_rep.do"
 
 *****************************
 *		Time preferences 	* 
@@ -47,6 +47,7 @@ do ".\DoFiles\cleaning\clean_missing_predictions.do"
 *****************************
 
 do ".\DoFiles\cleaning\clean_pilot3.do"
+do ".\DoFiles\cleaning\CleaningP3.do"
 
 *****************************
 * Correct Sample Pilots		* 

@@ -87,4 +87,4 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
-save ".\DB\ITTSample.dta"
+save ".\DB\ITTSample.dta", replace
