@@ -38,15 +38,21 @@ do ".\DoFiles\cleaning\DB_time_pref.do"
 *		P1 & P2 Followups 	* 
 *****************************
 
-do ".\DoFiles\importAppend2020Followups.do"
-do ".\DoFiles\cleaning_missingCasefiles.do"
-do ".\DoFiles\clean_missing_predictions.do"
+do ".\DoFiles\cleaning\importAppend2020Followups.do"
+do ".\DoFiles\cleaning\cleaning_missingCasefiles.do"
+do ".\DoFiles\cleaning\clean_missing_predictions.do"
 
 *****************************
 *		P3 results 		 	* 
 *****************************
 
-do ".\DoFiles\clean_pilot3.do"
+do ".\DoFiles\cleaning\clean_pilot3.do"
+
+*****************************
+* Correct Sample Pilots		* 
+*****************************
+
+do ".\DoFiles\cleaning\ITTSample.do"
 
 
 
