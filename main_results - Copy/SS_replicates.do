@@ -6,7 +6,7 @@
 /*NOTE: AVOID SYNCING WITH DROPBOX (OR ANY OTHER SERVICE) WHILE RUNNING THIS DO FILE*/
 ********************************************************************************
 	*DB: Calculator:5005
-use  ".\DB\scaleup_hd.dta", clear
+use  "$sharelatex\DB\scaleup_hd.dta", clear
 
 
 *Variables
@@ -24,7 +24,7 @@ use  ".\DB\scaleup_hd.dta", clear
 *PANEL A (Outcomes)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelA") modify
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	{
 	qui su `var'
@@ -57,7 +57,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
-putexcel set  "./Tables/SS.xlsx", sheet("PanelB") modify
+putexcel set  "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
@@ -95,7 +95,7 @@ keep if junta==7
 *PANEL A (Outcomes)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelA") modify	
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify	
 foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 	{
 	qui su `var'
@@ -125,7 +125,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m duracion  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelB") modify		
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
@@ -156,11 +156,11 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 
 ********************************************************************************
 	*DB: March Pilot
-use ".\DB\pilot_operation.dta", clear
+use "$sharelatex\DB\pilot_operation.dta", clear
 drop if tratamientoquelestoco==0
-merge m:1 expediente anio using ".\DB\pilot_casefiles_wod.dta", keep(1 3)
+merge m:1 expediente anio using "$sharelatex\DB\pilot_casefiles_wod.dta", keep(1 3)
 ren expediente exp
-merge m:1 exp anio using ".\DB\inicialesP1Faltantes_wod.dta", keep(1 3) gen(_mNuevasIniciales) force
+merge m:1 exp anio using "$pilot3\out\inicialesP1Faltantes_wod.dta", keep(1 3) gen(_mNuevasIniciales) force
 
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
@@ -199,13 +199,13 @@ drop if TAll==1
 drop if treatment==3
 
 sort junta exp anio fecha
-by junta exp anio: gen renglon2 = _n
-keep if renglon2==1
+by junta exp anio: gen renglon = _n
+keep if renglon==1
 
 *PANEL A (Outcomes)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelA") modify
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
@@ -235,7 +235,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelB") modify		
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
@@ -267,11 +267,11 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 	
 ********************************************************************************
 	*DB: March Pilot merged with surveys (Table 1A)
-use ".\DB\pilot_casefiles_wod.dta", clear	
+use "$sharelatex\DB\pilot_casefiles_wod.dta", clear	
 
 preserve
 *Employee
-merge m:1 folio using  "./Raw/Append Encuesta Inicial Actor.dta" , keep(2 3)
+merge m:1 folio using  "$sharelatex/Raw/Append Encuesta Inicial Actor.dta" , keep(2 3)
 rename A_5_1 masprob_employee
 replace masprob=masprob/100
 rename A_5_5 dineromasprob_employee
@@ -283,7 +283,7 @@ replace tiempomasprob_employee=. if perc>=98
 
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("SS_A") modify		
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("SS_A") modify		
 foreach var of varlist masprob dineromasprob tiempomasprob ///
 	{
 
@@ -310,7 +310,7 @@ restore
 
 preserve
 *Employee's Lawyer
-merge m:m folio using  "./Raw/Append Encuesta Inicial Representante Actor.dta" , keep(2 3)
+merge m:m folio using  "$sharelatex/Raw/Append Encuesta Inicial Representante Actor.dta" , keep(2 3)
 rename RA_5_1 masprob_law_emp
 replace masprob=masprob/100
 rename RA_5_5 dineromasprob_law_emp
@@ -318,7 +318,7 @@ rename RA_5_8 tiempomasprob_law_emp
 	
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("SS_A") modify			
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("SS_A") modify			
 foreach var of varlist masprob dineromasprob tiempomasprob ///
 	{
 
@@ -346,7 +346,7 @@ restore
 
 preserve
 *Firm's Lawyer
-merge m:m folio using  "./Raw/Append Encuesta Inicial Representante Demandado.dta" , keep(2 3)
+merge m:m folio using  "$sharelatex/Raw/Append Encuesta Inicial Representante Demandado.dta" , keep(2 3)
 rename RD5_1_1 masprob_law_firm
 replace masprob=masprob/100
 rename RD5_5 dineromasprob_law_firm
@@ -381,10 +381,10 @@ restore
 
 ********************************************************************************
 	*DB: ScaleUp
-use ".\DB\scaleup_operation.dta", clear
-rename año anio
+use "$scaleup\DB\scaleup_operation.dta", clear
+rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using ".\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$scaleup\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
 
 *Notified casefiles
 keep if notificado==1
@@ -419,7 +419,7 @@ foreach var in ///
 *PANEL A (Outcomes)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelA") modify
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
@@ -449,7 +449,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelB") modify		
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'
@@ -482,10 +482,10 @@ foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diar
 
 *DB: Pilot3
 
-use ".\DB\P3Outcomes.dta", clear
+use "$pilot3\out\dulce_1911.dta", clear
 */
-merge m:1 id_actor using ".\DB\treatment_data.dta", keep(2 3) nogen
-merge m:1 id_actor using ".\DB\survey_data_2m.dta", nogen keep(1 3)
+merge m:1 id_actor using "$pilot3Complete\DB\treatment_data.dta", keep(2 3) nogen
+merge m:1 id_actor using "$pilot3Complete\DB\survey_data_2m.dta", nogen keep(1 3)
 drop if missing(main_treatment) | main_treatment == 3
 
 *Variable homologation
@@ -519,7 +519,7 @@ replace c_total = 100000
 *PANEL A (Outcomes)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelA") modify
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelA") modify
 foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 	{
 	qui su `var'
@@ -549,7 +549,7 @@ foreach var of varlist win liq_total c_total con cr_0 cr_m  ///
 *PANEL B (B⴩cas)
 local n=5
 local m=6
-putexcel set "./Tables/SS.xlsx", sheet("PanelB") modify		
+putexcel set "$sharelatex/Tables/SS.xlsx", sheet("PanelB") modify		
 foreach var of varlist abogado_pub gen trabajador_base c_antiguedad salario_diario horas_sem   ///
 	{
 	qui su `var'

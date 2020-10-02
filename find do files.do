@@ -6,4 +6,4 @@ clear
 set more off
  
  
-rcd "./DoFiles"  : find *.do , match(Append Encuesta Inicial Representante Actor.dta) show
+rcd "./DoFiles"  : find *.do , match(CalculatorVSettlements) show

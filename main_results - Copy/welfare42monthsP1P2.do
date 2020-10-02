@@ -18,11 +18,11 @@ local controls i.abogado_pub i.numActores i.anio i.phase i.junta
 //local imputedControls i.tipodeabogadoImputed
 ********************************************************************************
 
-use ".\DB\scaleup_operation.dta", clear
-rename año anio
+use "$scaleup\DB\scaleup_operation.dta", clear
+rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using ".\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
-merge m:1 junta exp anio using ".\DB\scaleup_predictions.dta", nogen keep(1 3)
+merge m:1 junta exp anio using "$sharelatex\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$scaleup\DB\scaleup_predictions.dta", nogen keep(1 3)
 
 
 *Notified casefiles
@@ -44,10 +44,9 @@ keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_a
 trabajador_base liq_total_laudo_avg numActores liq_total_convenio fecha_filing
 
 gen phase=2
-tempfile p2
-save `p2'
+save "$paper\DB\temp_p2", replace
 
-use "./DB/pilot_operation.dta" , clear	
+use "$sharelatex/DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 rename expediente exp
 
@@ -66,7 +65,7 @@ gen laudowin=prob_laudopos/prob_laudos
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
 trabajador_base liq_total_laudo_avg numActores laudowin liq_total_convenio fecha_filing
 
-append using `p2'
+append using "temp_p2"
 replace phase=1 if missing(phase)
 
 *cap drop tipodeabogado
@@ -114,7 +113,7 @@ keep if renglon==1
 
 //Merge nuevas iniciales-----------------------------
 
-merge 1:1 junta exp anio using ".\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
+merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
 keep(1 3) gen(_mNuevasIniciales) keepusing(abogado_pubN numActoresN)
 //keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M numActoresN)
 
@@ -147,12 +146,12 @@ bysort anio exp: gen order = _n
 *drop if treatment==3
 ********************************************************************************
 
-merge 1:1 junta exp anio using ".\DB\seguimiento_m5m.dta", keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
 replace cant_convenio = cant_convenio_exp if missing(cant_convenio)
 replace cant_convenio = cant_convenio_ofirec if missing(cant_convenio)
 replace cant_convenio = 0 if modo_termino_expediente == 6 & missing(cant_convenio)
-merge 1:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-merge 1:1 junta exp anio using ".\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
 replace liq_total_laudo_avg = liq_total_laudo_avgM if missing(liq_total_laudo_avg)
 /*
 --------------+-----------------------------------
@@ -264,7 +263,7 @@ reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(as
 	local IntMean=r(mean)
 	qui su npv_wz if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 
@@ -276,7 +275,7 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) NPV winsorsized (calculator)
@@ -287,7 +286,7 @@ reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust
 	local IntMean=r(mean)
 	qui su npvImputed_wz if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) NPV winsorsized (calculator)
@@ -298,7 +297,7 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robu
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *5) NPV winsorsized robust (calculator)
@@ -309,7 +308,7 @@ reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls
 	local IntMean=r(mean)
 	qui su asinhNPVImputed_robust if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 **********************************************************************************************************
@@ -326,7 +325,7 @@ reg length i.treatment i.p_actor i.treatment#i.p_actor `controls' if  length>0  
 	local IntMean=r(mean)
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
-	outreg2 using  "./Tables/reg_results/durationTE.xls", replace ctitle("OLS")  ///
+	outreg2 using  "$sharelatex/Tables/reg_results/durationTE.xls", replace ctitle("OLS")  ///
 	addtext(Casefile Controls, Yes, Includes settled, Yes) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor) dec(3) 
 *Bigger cases are sped up regardless of whether the plaintiff is present or not; The smaller cases are sped up only when the plaintiff is present.
@@ -337,11 +336,11 @@ stset length, failure(unresolved)
 
 *Table "Duration", column 2
 stcox  i.treatment i.p_actor i.treatment#i.p_actor `controls' if length<2300 & length>0 ,  robust nohr cluster(fecha)
-outreg2 using  "./Tables/reg_results/durationTE.xls", append ctitle("Cox")  ///
+outreg2 using  "$sharelatex/Tables/reg_results/durationTE.xls", append ctitle("Cox")  ///
 	addtext(Casefile Controls, Yes, Includes settled, Yes) ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor) dec(3) 
 stcox  i.treatment i.p_actor i.treatment#i.p_actor `controls' if length<2300 & length>0  & modoTermino != 3,  robust nohr cluster(fecha)
-outreg2 using  "./Tables/reg_results/durationTE.xls", append ctitle("Cox")  ///
+outreg2 using  "$sharelatex/Tables/reg_results/durationTE.xls", append ctitle("Cox")  ///
 	addtext(Casefile Controls, Yes, Includes settled, No) ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor) dec(3) 
 	
@@ -358,7 +357,7 @@ twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed!=. & p_actor==1 & 
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at Treatment, Phase 1") ytitle("kdensity") 
 		scheme(s2mono) graphregion(color(white));
 #delimit cr
-graph export "./Figures/OutcomesByTreatment_P1.pdf", replace 
+graph export "$sharelatex/Figures/OutcomesByTreatment_P1.pdf", replace 
 
 #delimit ;
 *Predicted outcomes for continuing cases - Phase 2;
@@ -368,6 +367,6 @@ twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed~=. & p_actor==1 & 
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at treatment, Phase 2") ytitle("kdensity") 
 		scheme(s2mono) graphregion(color(white));
 #delimit cr
-graph export "./Figures/OutcomesByTreatment_P2.pdf", replace 
+graph export "$sharelatex/Figures/OutcomesByTreatment_P2.pdf", replace 
 
 

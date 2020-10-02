@@ -41,6 +41,7 @@ do ".\DoFiles\cleaning\DB_time_pref.do"
 do ".\DoFiles\cleaning\importAppend2020Followups.do"
 do ".\DoFiles\cleaning\cleaning_missingCasefiles.do"
 do ".\DoFiles\cleaning\clean_missing_predictions.do"
+do ".\DoFiles\cleaning\cleanTerminaciones_v2.do"
 
 *****************************
 *		P3 results 		 	* 

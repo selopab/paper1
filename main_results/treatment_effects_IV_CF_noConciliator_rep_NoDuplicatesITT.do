@@ -8,10 +8,10 @@ Column (9)
 *Set controls.
 local controls i.anio i.junta i.phase i.numActores
 
-use "$scaleup/DB/scaleup_operation.dta", clear
-rename ao anio
+use "./DB/scaleup_operation.dta", clear
+rename año anio
 rename expediente exp
-merge m:1 junta exp anio using "$sharelatex/DB/scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "./DB/scaleup_casefiles_wod.dta" , nogen  keep(1 3)
 
 *Notified casefiles
 keep if notificado==1
@@ -34,9 +34,10 @@ egen time_hr=group(time_hearing)
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
 	time_hearing time_hr numActores
 gen phase=2
-save "$paper\DB\temp_p2", replace
+tempfile p2
+save `p2'
 
-use "$sharelatex/DB/pilot_operation.dta" , clear	
+use "./DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 
 *Presence employee
@@ -52,11 +53,11 @@ egen time_hr=group(time_hearing)
 
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
 	time_hearing time_hr numActores
-append using "$paper\DB\temp_p2"
+append using `p2'
 replace phase=1 if missing(phase)
 
-merge m:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", nogen
-merge m:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+merge m:1 junta exp anio using ".\DB\seguimiento_m5m.dta", nogen
+merge m:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
 replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
 ********************************************************************************
 
@@ -118,11 +119,11 @@ drop if treatment==3
 
 *OLS (FS)
 reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", replace ctitle("OLS FS") dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("OLS FS") dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
 
 *Probit (FS)
 probit p_actor i.treatment time_instrument `controls', r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
 
 
 cap drop xb
@@ -137,7 +138,7 @@ qui su seconcilio if e(sample)
 local DepVarMean=r(mean)
 qui su p_actor if e(sample)
 local IntMean=r(mean)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") ///
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") ///
 addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr)
 
 	
@@ -150,7 +151,7 @@ foreach var of varlist time_hr2-time_hr8 {
 	
 *Probit (FS)
 probit p_actor i.treatment i.junta time_hr2-time_hr8 `controls', r cluster(fecha)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr )
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr )
 
 cap drop xb
 predict xb, xb
@@ -166,5 +167,5 @@ qui su seconcilio if e(sample)
 local DepVarMean=r(mean)
 qui su p_actor if e(sample)
 local IntMean=r(mean)
-outreg2 using "$sharelatex/Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
  

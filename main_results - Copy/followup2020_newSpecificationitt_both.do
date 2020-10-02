@@ -18,11 +18,11 @@ global winsorize=95 	/* winsorize level for NPV levels */
 local controls i.abogado_pub numActores
 //local imputedControls i.tipodeabogadoImputed
 ********************************************************************************
-use ".\DB\scaleup_operation.dta", clear
-rename año anio
+use "$scaleup\DB\scaleup_operation.dta", clear
+rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using ".\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
-merge m:1 junta exp anio using ".\DB\scaleup_predictions.dta", nogen keep(1 3)
+merge m:1 junta exp anio using "$sharelatex\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$scaleup\DB\scaleup_predictions.dta", nogen keep(1 3)
 
 *Notified casefiles
 keep if notificado==1
@@ -41,10 +41,9 @@ keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_a
 trabajador_base liq_total_laudo_avg numActores
 
 gen phase=2
-tempfile p2
-save `p2', replace
+save "$paper\DB\temp_p2", replace
 
-use "./DB/pilot_operation.dta" , clear	
+use "$sharelatex/DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 rename expediente exp
 
@@ -58,7 +57,7 @@ gen liq_total_laudo_avg =  liq_laudopos * (prob_laudopos/prob_laudos)
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
 trabajador_base liq_total_laudo_avg numActores
 
-append using `p2'
+append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
 
 *cap drop tipodeabogado
@@ -106,7 +105,7 @@ keep if renglon==1
 
 //Merge nuevas iniciales-----------------------------
 
-merge 1:1 junta exp anio using ".\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
+merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
 keep(1 3) gen(_mNuevasIniciales) keepusing(abogado_pubN numActoresN)
 //keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M numActoresN)
 
@@ -139,12 +138,12 @@ bysort anio exp: gen order = _n
 *drop if treatment==3
 ********************************************************************************
 
-merge 1:1 junta exp anio using ".\DB\seguimiento_m5m.dta", keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
 replace cant_convenio = cant_convenio_exp if missing(cant_convenio)
 replace cant_convenio = cant_convenio_ofirec if missing(cant_convenio)
 replace cant_convenio = 0 if modo_termino_expediente == 6 & missing(cant_convenio)
-merge 1:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-merge 1:1 junta exp anio using ".\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
 replace liq_total_laudo_avg = liq_total_laudo_avgM if missing(liq_total_laudo_avg)
 /*
 --------------+-----------------------------------
@@ -268,7 +267,7 @@ twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed!=. & p_actor==1 & 
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at Treatment, Phase 1") ytitle("kdensity") 
 		scheme(s2mono) graphregion(color(white));
 #delimit cr
-graph export "./Figures/OutcomesByTreatment_P1.pdf", replace 
+graph export "$sharelatex/Figures/OutcomesByTreatment_P1.pdf", replace 
 
 #delimit ;
 *Predicted outcomes for continuing cases - Phase 2;
@@ -278,7 +277,7 @@ twoway (kdensity npvImputed if treatment==2 & asinhNPVImputed~=. & p_actor==1 & 
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("NPV of outcome, winsorized 95%") title("NPV of Outcomes, Imputed for Unresolved Cases") subtitle("Plaintiff present at treatment, Phase 2") ytitle("kdensity") 
 		scheme(s2mono) graphregion(color(white));
 #delimit cr
-graph export "./Figures/OutcomesByTreatment_P2.pdf", replace 
+graph export "$sharelatex/Figures/OutcomesByTreatment_P2.pdf", replace 
 
 
 
@@ -298,7 +297,7 @@ graph export "./Figures/OutcomesByTreatment_P2.pdf", replace
 reg asinhNPV i.treatment if !missing(asinhNPVImputed), robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", replace ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls", replace ctitle("asinhNPV") ///
 	addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor) ///
 	addnote("Controls: `controls'") 
 	
@@ -308,14 +307,14 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor if !missing(asinhNPVImp
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
 reg asinhNPV i.treatment `controls' i.treatment#i.missingCasefiles if !missing(asinhNPVImputed), robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
 	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment ///
 	missingCasefiles 1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
@@ -325,7 +324,7 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' i.treatment#
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPV_p2.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV. Controls") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles ///
 1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
@@ -341,7 +340,7 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg asinhNPVImputed i.treatment, robust cluster(fecha)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", replace ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", replace ctitle("asinhNPVImputed") ///
 	addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor) ///
 	addnote("Controls: `controls'") 
 
@@ -351,14 +350,14 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor, robust cluster(
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
 reg asinhNPVImputed i.treatment `controls' i.treatment#i.missingCasefiles, robust cluster(fecha)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
 	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor ///
 	 `controls' i.treatment#i.missingCasefiles)
 
@@ -368,7 +367,7 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls' i.tre
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. Controls") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles ///
 1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
@@ -378,7 +377,7 @@ reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. rOBUST") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2.xls", append ctitle("asinhNPVImputed. rOBUST") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles ///
 1.p_actor 2.treatment#1.p_actor  `controls' i.treatment#i.missingCasefiles)
 
@@ -409,7 +408,7 @@ keep if abogado_pub==0
 reg asinhNPV i.treatment, robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", replace ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", replace ctitle("asinhNPV") ///
 	addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor) ///
 	addnote("Controls: `controls'") 
  
@@ -419,14 +418,14 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor, robust cluster(fecha)
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV") ///
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
 reg asinhNPV i.treatment `controls' , robust cluster(fecha)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV. Controls") ///
 	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) Treatment presence interaction + casefile level controls
@@ -435,7 +434,7 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls', robust clus
 	local IntMean=r(mean)
 	qui su asinhNPV if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVPrivate_p2.xls", append ctitle("asinhNPV. Controls") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 ***********************
@@ -448,7 +447,7 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg asinhNPVImputed i.treatment, robust cluster(fecha)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", replace ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", replace ctitle("asinhNPVImputed") ///
 	addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor) ///
 	addnote("Controls: `controls'") 
 
@@ -458,14 +457,14 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor, robust cluster(
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, No) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) Just treatment + casefile level controls
 reg asinhNPVImputed i.treatment `controls', robust cluster(fecha)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed. Controls") ///
 	addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) Treatment presence interaction + casefile level controls
@@ -474,5 +473,5 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robu
 	local IntMean=r(mean)
 	qui su asinhNPVImputed if e(sample)
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed. Controls") ///
+outreg2 using "$sharelatex\Tables\reg_results\December2018Followup_asinhNPVImputed_p2Private.xls", append ctitle("asinhNPVImputed. Controls") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')  keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)

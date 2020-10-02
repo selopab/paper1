@@ -15,11 +15,11 @@ global pago_pri=2000
 local controls i.abogado_pub numActores
 //local imputedControls i.tipodeabogadoImputed
 ********************************************************************************
-use ".\DB\scaleup_operation.dta", clear
-rename año anio
+use "$scaleup\DB\scaleup_operation.dta", clear
+rename ao anio
 rename expediente exp
-merge m:1 junta exp anio using ".\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
-merge m:1 junta exp anio using ".\DB\scaleup_predictions.dta", nogen keep(1 3)
+merge m:1 junta exp anio using "$sharelatex\DB\scaleup_casefiles_wod.dta" , nogen  keep(1 3)
+merge m:1 junta exp anio using "$scaleup\DB\scaleup_predictions.dta", nogen keep(1 3)
 
 *Notified casefiles
 keep if notificado==1
@@ -38,10 +38,9 @@ keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_a
 trabajador_base liq_total_laudo_avg numActores liq_total_laudo
 
 gen phase=2
-tempfile p2
-save `p2'
+save "$paper\DB\temp_p2", replace
 
-use "./DB/pilot_operation.dta" , clear	
+use "$sharelatex/DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 rename expediente exp
 
@@ -57,7 +56,7 @@ ren liq_laudopos liq_total_laudo
 keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
 trabajador_base liq_total_laudo_avg numActores liq_total_laudo
 
-append using `p2'
+append using "$paper\DB\temp_p2"
 replace phase=1 if missing(phase)
 
 *cap drop tipodeabogado
@@ -105,7 +104,7 @@ keep if renglon==1
 
 //Merge nuevas iniciales-----------------------------
 
-merge 1:1 junta exp anio using ".\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
+merge 1:1 junta exp anio using "$sharelatex\p1_w_p3\out\inicialesP1Faltantes_wod.dta", ///
 keep(1 3) gen(_mNuevasIniciales) keepusing(abogado_pubN numActoresN)
 //keepusing(fechaDemanda_M tipodeabogado_M trabajadordeconfianza_M numActoresN)
 
@@ -137,12 +136,12 @@ bysort anio exp: gen order = _n
 *drop if treatment==3
 ********************************************************************************
 
-merge 1:1 junta exp anio using ".\DB\seguimiento_m5m.dta", keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\seguimiento_m5m.dta", keep(1 3)
 replace cant_convenio = cant_convenio_exp if missing(cant_convenio)
 replace cant_convenio = cant_convenio_ofirec if missing(cant_convenio)
 replace cant_convenio = 0 if modo_termino_expediente == 6 & missing(cant_convenio)
-merge 1:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-merge 1:1 junta exp anio using ".\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
+merge 1:1 junta exp anio using "$sharelatex\DB\missingPredictionsP1_wod", gen(_mMissingPreds) keep(1 3)
 replace liq_total_laudo_avg = liq_total_laudo_avgM if missing(liq_total_laudo_avg)
 /*
 --------------+-----------------------------------
@@ -167,7 +166,7 @@ twoway (kdensity liq_total_laudo if treatment==2 & liq_total_laudo<650000 & modo
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Caluculator predicted settlement") title("Calculator Predicted Amounts for Court Win") 
 		subtitle("Unresoved Cases, By treatment, truncated at 99%") ytitle("kdensity") scheme(s2mono) graphregion(color(white)) ylabel(0 (0.000006) 0.000006);
 #delimit cr
-graph export "./Figures/Calculator_CourtWin_Unresolved.pdf", replace 
+graph export "$sharelatex/Figures/Calculator_CourtWin_Unresolved.pdf", replace 
 
 forvalues i = 1/2{
     #delimit ;
@@ -176,7 +175,7 @@ forvalues i = 1/2{
 		legend(lab(1 "Treatment") lab(2 "Control")) xtitle("Caluculator predicted settlement") title("Calculator Predicted Amounts for Court Win") 
 		subtitle("Unresoved Cases, By treatment, truncated at 99%") ytitle("kdensity") scheme(s2mono) graphregion(color(white)) ylabel(0 (0.000006) 0.000006);
 #delimit cr
-graph export "./Figures/Calculator_CourtWin_Unresolved_P`i'.pdf", replace 
+graph export "$sharelatex/Figures/Calculator_CourtWin_Unresolved_P`i'.pdf", replace 
 }
 
 
