@@ -4,8 +4,8 @@ Compliance table for P2
 */
 
 
-use "$scaleup\DB\scaleup_operation.dta", clear //phase2
-rename ao anio
+use ".\DB\scaleup_operation.dta", clear //phase2
+rename año anio
 rename expediente exp
 
 *Notified casefiles
@@ -54,7 +54,7 @@ gen registro_both = registro_p_actora*registro_p_dem2
 gen registro_any = registro_p_actora + registro_p_dem2 > 0
 ***************************************
 
-putexcel set  "$sharelatex/Tables/ComplianceP2.xlsx", modify sheet("complianceP2")
+putexcel set  "./Tables/ComplianceP2.xlsx", modify sheet("complianceP2")
 
 
 count if tratamiento == 0

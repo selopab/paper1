@@ -6,7 +6,7 @@ defendant's side, both, and any.
 */
 
 ***
-use "$sharelatex/DB/Append Encuesta de Salida", clear
+use "./DB/Append Encuesta de Salida", clear
 keep folio ES_1_1 fecha
 
 bysort folio fecha: gen j=_n
@@ -19,11 +19,11 @@ save `exit'
 
 /*Compliance table*/
 
-use "$sharelatex\DB\pilot_operation.dta", clear
+use ".\DB\pilot_operation.dta", clear
 drop if tratamientoquelestoco==0
 gen exp = expediente
 gen treatment = tratamientoquelestoco
-
+drop renglon
 
 ********************************************************************************
 
@@ -59,6 +59,7 @@ drop if treatment==3
 sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
+putexcel set "./Tables/Compliance.xlsx", sheet("Compliance") modify
 
 *Compliance rate
 levelsof tratamientoquelestoco, local(levels)
@@ -66,42 +67,42 @@ foreach l of local levels {
 	
 	local c=`l'+4
 	qui count if tratamientoquelestoco==`l'
-	qui putexcel B`c'=(r(N)) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+	qui putexcel B`c'=(r(N)) 
 	
 	*Plaintiff
 	qui su sellevotratamiento if tratamientoquelestoco==`l' & ( p_actor==1 | p_ractor==1)
-	qui putexcel P`c'=(r(mean)) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+	qui putexcel P`c'=(r(mean)) 
 	
 	*Defendant
 	qui su sellevotratamiento if tratamientoquelestoco==`l' & ( p_dem==1 | p_rdem==1)
-	qui putexcel Q`c'=(r(mean)) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+	qui putexcel Q`c'=(r(mean)) 
 	
 	*Both
 	qui su sellevotratamiento if tratamientoquelestoco==`l' & ( p_dem==1 | p_rdem==1) & ( p_actor==1 | p_ractor==1)
-	qui putexcel R`c'=(r(mean)) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+	qui putexcel R`c'=(r(mean)) 
 	
 	*Any
 	qui su sellevotratamiento if tratamientoquelestoco==`l' & ( p_dem==1 | p_rdem==1) | ( p_actor==1 | p_ractor==1)
-	qui putexcel S`c'=(r(mean)) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+	qui putexcel S`c'=(r(mean)) 
 	
 	}
 ********************************************************************************
 *Compliance with baseline survey 
 
-merge 1:1 folio fecha using "$sharelatex/DB/Append Encuesta Inicial Actor.dta", keep(1 3)
+merge 1:1 folio fecha using "./DB/Append Encuesta Inicial Actor.dta", keep(1 3)
 	*Identifies when employee answered
 gen ans_A=(_merge==3)
 drop _merge
 
-merge 1:1 folio fecha using "$sharelatex/DB/Append Encuesta Inicial Demandado.dta", keep(1 3)
+merge 1:1 folio fecha using "./DB/Append Encuesta Inicial Demandado.dta", keep(1 3)
 gen ans_D=(_merge==3)
 drop _merge
 
-merge 1:1 folio fecha using "$sharelatex/DB/Append Encuesta Inicial Representante Actor.dta", keep(1 3)
+merge 1:1 folio fecha using "./DB/Append Encuesta Inicial Representante Actor.dta", keep(1 3)
 gen ans_RA=(_merge==3)
 drop _merge
 
-merge 1:1 folio fecha using "$sharelatex/DB/Append Encuesta Inicial Representante Demandado.dta", keep(1 3)
+merge 1:1 folio fecha using "./DB/Append Encuesta Inicial Representante Demandado.dta", keep(1 3)
 gen ans_RD=(_merge==3)
 drop _merge
 
@@ -123,19 +124,19 @@ replace any_ans=(any_ans>0)
 *Compliance rate Baseline Survey
 *Plaintiff
 qui tab tratamientoquelestoco plaintiff_ans, matcell(EE) 
-qui putexcel T5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel T5=matrix(EE) 
 
 *Defendant
 qui tab tratamientoquelestoco defendant_ans, matcell(EE) 
-qui putexcel V5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel V5=matrix(EE) 
 
 *Both
 qui tab tratamientoquelestoco both_ans, matcell(EE) 
-qui putexcel X5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel X5=matrix(EE) 
 
 *Any
 qui tab tratamientoquelestoco any_ans, matcell(EE) 
-qui putexcel Z5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel Z5=matrix(EE) 
 
 
 ********************************************************************************
@@ -166,19 +167,19 @@ gen any_ans_e=ans_ES
 
 *Plaintiff
 qui tab tratamientoquelestoco plaintiff_ans_e, matcell(EE) 
-qui putexcel AB5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel AB5=matrix(EE) 
 
 *Defendant
 qui tab tratamientoquelestoco defendant_ans_e, matcell(EE) 
-qui putexcel AD5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel AD5=matrix(EE) 
 
 *Both
 qui tab tratamientoquelestoco both_ans_e, matcell(EE) 
-qui putexcel AF5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel AF5=matrix(EE) 
 
 *Any
 qui tab tratamientoquelestoco any_ans_e, matcell(EE) 
-qui putexcel AH5=matrix(EE) using "$sharelatex/Tables/Compliance.xlsx", sheet("Compliance") modify
+qui putexcel AH5=matrix(EE) 
 
 	
 

@@ -1,7 +1,7 @@
 /* Survey SS
 */
 
-use "$sharelatex/DB/pilot_operation.dta" , clear	
+use "./DB/pilot_operation.dta" , clear	
 drop renglon
 replace junta=7 if missing(junta)
 rename expediente exp
@@ -55,8 +55,8 @@ tempfile selectedCasefiles
 save `selectedCasefiles'
 /* Actores */
 
-putexcel set "$sharelatex\Tables\surveySS_dummies.xlsx", sheet("Actor") modify
-use "$sharelatex/DB/Append Encuesta Inicial Actor.dta", clear
+putexcel set ".\Tables\surveySS_dummies.xlsx", sheet("Actor") modify
+use "./DB/Append Encuesta Inicial Actor.dta", clear
 merge 1:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age
@@ -187,8 +187,8 @@ putexcel B53 = (r(N))
 ******************
 /* Actor lawyer */
 ******************
-putexcel set "$sharelatex\Tables\surveySS_dummies.xlsx", sheet("Lawyers") modify
-use "$sharelatex/DB/Append Encuesta Inicial Representante Actor.dta", clear
+putexcel set ".\Tables\surveySS_dummies.xlsx", sheet("Lawyers") modify
+use "./DB/Append Encuesta Inicial Representante Actor.dta", clear
 merge m:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age
@@ -275,7 +275,7 @@ putexcel B34 = (r(N))
 /* Defendant lawyer */
 **********************
 
-use "$sharelatex/DB/Append Encuesta Inicial Representante Demandado.dta", clear
+use "./DB/Append Encuesta Inicial Representante Demandado.dta", clear
 merge m:1 folio using `selectedCasefiles', nogen keep(3) 
 
 //1) Age

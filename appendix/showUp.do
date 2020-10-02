@@ -10,12 +10,12 @@ for each of the two phases, split by employee, employee lawyer, and firm lawyer.
 ********************************************************************************
 ********************************************************************************
 
-use "$sharelatex\DB\pilot_operation.dta", clear
+use ".\DB\pilot_operation.dta", clear
 
 drop if tratamientoquelestoco==0
 gen exp = expediente
 gen treatment = tratamientoquelestoco
-
+drop renglon
 
 ********************************************************************************
 
@@ -51,7 +51,7 @@ drop if treatment==3
 sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
-
+putexcel set "./Tables/show_up.xlsx", sheet("show_up") modify
 
 local r=3
 levelsof tratamientoquelestoco if tratamientoquelestoco!=0, local(levels)
@@ -73,7 +73,7 @@ foreach l of local levels {
 	foreach var of varlist p_actor p_ractor p_rdem {
 	
 		qui su `var' if tratamientoquelestoco==`l'
-		qui putexcel `Col'`rr'=(r(mean)) using "$sharelatex/Tables/show_up.xlsx", sheet("show_up") modify
+		qui putexcel `Col'`rr'=(r(mean)) 
 		local rr=`rr'+1
 		
 		}
@@ -90,8 +90,8 @@ foreach l of local levels {
 ********************************************************************************
 ********************************************************************************
 
-use "$scaleup\DB\scaleup_operation.dta", clear
-
+use ".\DB\scaleup_operation.dta", clear
+putexcel set "./Tables/show_up.xlsx", sheet("show_up") modify
 
 
 local r=3
@@ -112,7 +112,7 @@ foreach l of local levels {
 	foreach var of varlist p_actor p_ractor p_rdem {
 	
 		qui su `var' if tratamiento==`l'
-		qui putexcel `Col'`rr'=(r(mean)) using "$sharelatex/Tables/show_up.xlsx", sheet("show_up") modify
+		qui putexcel `Col'`rr'=(r(mean)) 
 		local rr=`rr'+1
 		
 		}
