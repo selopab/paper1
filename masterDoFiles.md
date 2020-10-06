@@ -104,6 +104,69 @@ calc_predictions.R (NO SE HA CORRIDO)
 
 ## Figures
 ### FA1: Covariate distribution comparison HS vs P1
-\texttt{covariate\_plots.R , covariate\_plots\_hd.R }
+_covariate_plots.R_ and _covariate_plots_hd.R_
 ### FA3: Covariate distribution comparison HS vs P2
-\texttt{covariate\_plots.R , covariate\_plots\_hd.R }
+v_covariate_plots.R_ and _covariate_plots_hd.R_
+
+
+#Appendix C
+##Tables
+###TC.1 .- Amount asked (log), amount won (log), and probability of winning - Historic Data
+_reg_amount.do_ Output gets aggregated in the _TableReg1_log.xlsx_ file.
+
+###TC.2.-  Balance of casefiles having negative recovery amount.
+_negReturnHD.do_. Output gets written in _negative_returners_balance.xlsx_
+
+###TC.3.- Balance regression on characteristics conditional on employee present
+_ep_balance.do_. Output gets formatted in _ep_balance.xlsx_
+
+###TC.4.- Employee presence
+_pEmployeePresence.do_.
+
+###TC.5.- Expectations Relative to Prediction
+_prediction_cases_pooled_MergeWithPilotOperation.do_ does Panel A w/P1 & P2
+_ExpectationsFromP3forPrediction_cases_pooles_panelB.do_ does Panel B with P3
+Results are merged and formatted in table _prediction_cases_pooled.xlsx_
+
+###TC.6.- First stage and robustness for the control function regression
+_treatment\_effects\_IV\_CF.do_. Problem with column 1, gotta get back to it.
+
+###TC.7.- Heterogeneity in treatment effects
+_te_heterogeneity.do_ produces raw output, _te_heterogeneity.xlsx_ formats it.
+
+###TC.8.- Treatment Effects with placebo arm - Phase 1
+_tePlacebos.do_
+
+###TC.9.- Updating - Phase 1
+_update_reg_theta_rel_uc.do_ performs the regression with underconfidents, while _update_reg_theta_rel_oc.do_ does it for over confidents. The table is actually composed of 2 different tables, both of which exist in the excel workbook _update_reg_theta_rel.xlsx_.
+
+###TC.10 - Duration of Cases by Treatment
+_welfare42monthsP1P2.do_ does, among other things, this regression. _duration.xlsx_ adds format to the results.
+
+
+##Figures
+###F1.C.- Stylized Depiction of the Labor Justice Process
+
+###F2.C.-Calculator Treatment Format (example) - Phase 2
+
+###F3.C.- Calculator Treatment Format (example) - Phase 3
+
+###F4.C.- Distribution of Amount Collected, by Type of Lawyer
+_cdf_value_claims.do_ does both subgraphs and appends them
+
+###F5.C.-
+_oc_comparison_B.do_ does 6 subfigures, they get appended directly on latex.
+
+###F6.C.- Settlement Amount vs.  Calculator
+_ratioGananciaConvenio.do_
+
+###F7.C.- Outcomes when Plaintiff was Present, by Treatment
+_welfare42monthsp1p2.do_ does the 2 subfigures, latex compiled them as one
+
+
+###F8.C.- Calculator Predictions for Plaintiff Court Judgment, By Phase
+caseValueKdensitiesdo.do
+
+
+
+##Figures

@@ -3,7 +3,7 @@
 Overconfidence plots 
 */
 
-use "$sharelatex/DB/pilot_operation.dta" , clear	
+use "./DB/pilot_operation.dta" , clear	
 replace junta=7 if missing(junta)
 rename expediente exp
 
@@ -11,6 +11,7 @@ rename expediente exp
 replace p_actor=(p_actor==1)
 drop if tratamientoquelestoco==0
 rename tratamientoquelestoco treatment
+drop renglon
 ********************************************************************************
 
 bysort junta exp anio: gen DuplicatesPredrop=_N
@@ -56,9 +57,9 @@ tempfile selectedCasefiles
 save `selectedCasefiles'
 
 ************************************Employee************************************
-use  "$sharelatex\DB\pilot_casefiles.dta", clear
+use  ".\DB\pilot_casefiles.dta", clear
 merge m:1 folio using `selectedCasefiles', keep(3) keepusing(tratamientoquelestoco seconcilio p_actor) nogen
-merge m:1 folio using "$sharelatex/Raw/Append Encuesta Inicial Actor.dta", keep(2 3) nogen
+merge m:1 folio using "./Raw/Append Encuesta Inicial Actor.dta", keep(2 3) nogen
 
 replace seconcilio=0 if seconcilio==.
 duplicates drop folio tratamientoqueles secon, force
@@ -80,7 +81,7 @@ twoway (hist diff_amount if diff_amount<160 & diff_amount>=-50 , w(10) percent) 
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Amount") xtitle("Survey - Calculator in thousand pesos") ///
 	legend(off) name(amount, replace)
-graph export "$sharelatex/Figures/diff_amt_e.pdf", replace 
+graph export "./Figures/diff_amt_e.pdf", replace 
 
 	*Probability
 rename A_5_1 Prob_win
@@ -96,15 +97,15 @@ twoway (hist diff_prob, w(10) percent) ///
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Probability") xtitle("Survey -  Calculator in % points") ///
 	legend(off) name(prob, replace)
-graph export "$sharelatex/Figures/diff_prob_e.pdf", replace 
+graph export "./Figures/diff_prob_e.pdf", replace 
 	
 
 
 
 ************************************Employe's Lawyer****************************
-use  "$sharelatex\DB\pilot_casefiles.dta", clear
+use  ".\DB\pilot_casefiles.dta", clear
 merge m:1 folio using `selectedCasefiles', keep(3) keepusing(tratamientoquelestoco seconcilio p_actor) nogen
-merge m:m folio using "$sharelatex/Raw/Append Encuesta Inicial Representante Actor.dta", keep(2 3) nogen
+merge m:m folio using "./Raw/Append Encuesta Inicial Representante Actor.dta", keep(2 3) nogen
 
 replace seconcilio=0 if seconcilio==.
 duplicates drop folio tratamientoqueles secon, force
@@ -125,7 +126,7 @@ twoway (hist diff_amount if diff_amount<160 & diff_amount>=-50 , w(10) percent) 
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Amount") xtitle("Survey - Calculator in thousand pesos") ///
 	legend(off) name(amount, replace)
-graph export "$sharelatex/Figures/diff_amt_el.pdf", replace 
+graph export "./Figures/diff_amt_el.pdf", replace 
 
 	*Probability
 rename RA_5_1 Prob_win
@@ -141,14 +142,14 @@ twoway (hist diff_prob, w(10) percent) ///
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Probability") xtitle("Survey -  Calculator in % points") ///
 	legend(off) name(prob, replace)
-graph export "$sharelatex/Figures/diff_prob_el.pdf", replace 
+graph export "./Figures/diff_prob_el.pdf", replace 
 	
 
 
 ************************************Firm's Lawyer*******************************
-use  "$sharelatex\DB\pilot_casefiles.dta", clear
+use  ".\DB\pilot_casefiles.dta", clear
 merge m:1 folio using `selectedCasefiles', keep(3) keepusing(tratamientoquelestoco seconcilio p_actor) nogen
-merge m:m folio using "$sharelatex/Raw/Append Encuesta Inicial Representante Demandado.dta", keep(2 3) nogen
+merge m:m folio using "./Raw/Append Encuesta Inicial Representante Demandado.dta", keep(2 3) nogen
 
 replace seconcilio=0 if seconcilio==.
 duplicates drop folio tratamientoqueles secon, force
@@ -169,7 +170,7 @@ twoway (hist diff_amount if diff_amount<160 & diff_amount>=-50 , w(10) percent) 
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Amount") xtitle("Survey - Calculator in thousand pesos") ///
 	legend(off) name(amount, replace)
-graph export "$sharelatex/Figures/diff_amt_fl.pdf", replace 
+graph export "./Figures/diff_amt_fl.pdf", replace 
 	
 	*Probability
 rename RD5_1_1 Prob_win
@@ -185,6 +186,6 @@ twoway (hist diff_prob, w(10) percent) ///
 		, scheme(s2mono) graphregion(color(white)) ///
 	title("Probability") xtitle("Survey -  Calculator in % points") ///
 	legend(off) name(prob, replace)
-graph export "$sharelatex/Figures/diff_prob_fl.pdf", replace 
+graph export "./Figures/diff_prob_fl.pdf", replace 
 
 	

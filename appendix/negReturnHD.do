@@ -22,8 +22,8 @@ replace liq_total_tope=. if perc>=95
 
 
 *Date 
-gen fecha_ter=date(fecha_termino, "YMD")
-gen fechadem=date(fecha_demanda, "YMD")
+gen fecha_ter=date(fecha_termino, "DMY")
+gen fechadem=date(fecha_demanda, "DMY")
 
 
 *NPV
@@ -56,7 +56,7 @@ local bvc gen trabajador_base c_antiguedad salario_diario horas_sem
 		}	
 	
 	*************************
-	esttab using "./Tables/reg_results/negative_returners_balance_changed.csv", se star(* 0.1 ** 0.05 *** 0.01) b(a2) ///
+	esttab using "./Tables/reg_results/negative_returners_balance_changed.csv", se star(* 0.1 ** 0.05 *** 0.01) b(3) ///
 	scalars("Erre R-squared" "F_stat F_stat" "Junta Court dummies") drop(*.junta) replace 
 
 		

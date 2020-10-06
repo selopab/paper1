@@ -345,7 +345,7 @@ outreg2 using  "./Tables/reg_results/durationTE.xls", append ctitle("Cox")  ///
 	addtext(Casefile Controls, Yes, Includes settled, No) ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor) dec(3) 
 	
-exit
+
 *****************************************************************************
 *							GRAPHS											*
 *****************************************************************************
