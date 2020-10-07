@@ -1,6 +1,4 @@
 *Cleaning 2m survey
-
-pause on
 ***************************************OPM**************************************
 import excel ".\Raw\base_control_encuestas.xlsx", ///
 	sheet("TRANSFERENCIA_EMPRESA_ENCUESTAS") cellrange(A3:U987) firstrow clear
@@ -482,8 +480,6 @@ replace survey_date=date(date_timestamp1, "DMY") if missing(survey_date)
 format survey_date %td
 
 codebook survey_date
-br
-pause
 
 drop if inlist(id_actor,"196_1","145")
 duplicates tag id_actor, gen (tag)
@@ -491,7 +487,6 @@ duplicates tag id_actor, gen (tag)
 drop if tag==1 & origen=="excel"
 drop tag
 duplicates drop id_actor, force
-pause
 
 merge 1:1 id_actor using ".\_aux\treatment_data.dta",  nogen keep(1 3) ///
  keepusing(id_actor date prob_ganar prob_mayor cantidad_ganar cant_mayor salario_diario)
@@ -578,7 +573,6 @@ merge 1:1 id_actor using `temp_ended2w', keep(1 2 3)
 *Hacer un sanity check
 *Si arreglo en dos semanas no entablo demanda en dos meses
 replace entablo_demanda = 0 if conflicto_arreglado_2ws==1 & missing(entablo_demanda)
-pause 
 
 foreach var of varlist conflicto_arreglado entablo_demanda reinstalacion monto_del_convenio fecha_del_arreglo tiempo_arreglo {
 	replace `var'=`var'_2ws if _merge==3 & !missing(`var'_2ws)
@@ -613,5 +607,4 @@ replace comprado_casa_o_terreno=. if inlist(comprado_casa_o_terreno, 0, 1)!=1 & 
 replace nivel_de_satisfaccion_abogado=. if nivel_de_satisfaccion_abogado==-1
 
 save ".\DB\survey_data_2m.dta", replace
-pause off
 	

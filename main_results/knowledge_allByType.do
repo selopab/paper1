@@ -163,7 +163,7 @@ twoway (bar mean_total v1 if sabe==2 & abogado_pub==0, color(black)) ///
 		4.5 `" "Knows if asked" "Sev. Payment" "'  ///
 		7.5 `" "Knows if asked" "Reinstatement" "' ///
 		10.5 `" "Knows if asked" "Overtime" "', noticks angle(vertical)) ///
-		 scheme(s2mono) graphregion(color(none))
+		 scheme(s2mono) graphregion(color(white))
 		graph export ".\Figures\knows_all_byType.pdf", replace
 
 	  

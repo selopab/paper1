@@ -151,7 +151,7 @@ foreach var of varlist time_hr2-time_hr8 {
 	
 *Probit (FS)
 probit p_actor i.treatment i.junta time_hr2-time_hr8 `controls', r cluster(fecha)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr )
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr time_hr2-time_hr8)
 
 cap drop xb
 predict xb, xb

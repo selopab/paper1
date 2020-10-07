@@ -78,10 +78,10 @@ do "DoFiles\appendix\cdf_value_claims.do" //does both subgraphs and appends them
 do "DoFiles\appendix\oc_comparison_B.do" //does 6 subfigures, they get appended directly on latex.
 
 *F6.C.- Settlement Amount vs.  Calculator
-do "DoFiles\appendix\ratioGananciaConvenio.do
+do "DoFiles\appendix\ratioGananciaConvenio.do"
 
 *F7.C.- Outcomes when Plaintiff was Present, by Treatment
 //welfare42monthsp1p2.do_ does the 2 subfigures, latex compiled them as one
 
-*F8.C.- Calculator Predictions for Plaintiff Court Judgment, By Phase
-do "DoFiles\appendix\caseValueKdensitiesdo.do"
+*F8.C.- Calculator Pr
+//caseValueKdensitiesdo.do does it. It is run in main_results.do

@@ -57,7 +57,7 @@ twoway 	(line perc_con_5005 time, lwidth(medthick) lpattern(solid)) ///
 		(line perc_cr_5005 time, lwidth(medthick) lpattern(dash) color(navy)) ///
 		(line perc_exp_5005 time, lwidth(medthick) lpattern(dot) color(gs10)) ///
 		(line perc_dro_5005 time, lwidth(medthick) lpattern(dash_dot)) ///
-	, graphregion(color(none)) scheme(s2mono)  ///
+	, graphregion(color(white)) scheme(s2mono)  ///
 	xtitle("Months after initial sue") ytitle("Percentage") ///
 	xlabel(0(10)60) ///
 	legend(order(1 "Conciliation" 2 "Court ruling" 3 "Expiry" 4 "Drop")) 

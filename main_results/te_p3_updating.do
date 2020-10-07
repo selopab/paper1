@@ -61,7 +61,7 @@ foreach var in `depvar'	{
 	
 	
 	*************************
-	esttab using "./Tables/reg_results/te_updating.csv", se star(* 0.1 ** 0.05 *** 0.01) b(a2) ///
+	esttab using "./Tables/reg_results/te_updating.csv", se star(* 0.1 ** 0.05 *** 0.01) b(3) se(3) ///
 	scalars("Erre R-squared" "BVC BVC" "Source Source" "obs_per_gr Obs per group" "days_per_gr Days per group" "test_23 T2=T3") replace 
 	
 	

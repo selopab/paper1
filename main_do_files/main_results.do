@@ -55,4 +55,4 @@ do ".\DoFiles\main_results\knowledge_allByType.do"
 do ".\DoFiles\main_results\calculatorDistributionForSettled.do"
 
 *F6: Calculator distribution for cases that won in court
-do ".\DoFiles\main_results\aseValueKdensitiesdo.do"
+do ".\DoFiles\main_results\caseValueKdensitiesdo.do"

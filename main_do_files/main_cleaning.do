@@ -55,20 +55,3 @@ do ".\DoFiles\cleaning\CleaningP3.do"
 *****************************
 
 do ".\DoFiles\cleaning\ITTSample.do"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,6 +1,4 @@
 *Cleaning 2w survey
-
-pause on
 **************************************GFORMS************************************
 insheet using ".\Raw\gf2w.csv", clear
 
@@ -211,8 +209,6 @@ replace survey_date=fecha_ultimo_intento_encuesta if missing(survey_date)
 format survey_date %td
 
 codebook survey_date
-br
-pause
 
 duplicates drop id_actor, force
 merge 1:1 id_actor using ".\_aux\treatment_data.dta",  nogen keep(1 3) ///
@@ -299,5 +295,4 @@ replace coyote=1 if como_lo_encontro==8 & (especifique=="dentro de la junta" | e
 drop telefono*
 					
 save ".\DB\survey_data_2w.dta", replace	
-pause off
 
