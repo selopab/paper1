@@ -117,29 +117,30 @@ gen treat_p_actor=treatment*p_actor
 *Drop conciliator observations
 drop if treatment==3
 
-*OLS (FS)
-reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("OLS FS") dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
+*1) Probit probability model
+probit  seconcilio i.treatment##i.p_actor `controls', r cluster(fecha)
+qui su seconcilio if e(sample)
+local DepVarMean=r(mean)
+qui su p_actor if e(sample)
+local IntMean=r(mean)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("Probit Prob model") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor) ///
+addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')
 
-*Probit (FS)
-probit p_actor i.treatment time_instrument `controls', r cluster(fecha)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_actor)
+*2) OLS (FS)
+reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("OLS FS") dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_instrument)
 
 
 cap drop xb
 predict xb, xb
 *Generalized residuals
-gen gen_resid_pr = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/(1-normal(xb)))	
+gen gen_resid_pr8 = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/(1-normal(xb)))	
 
 *CF
-*Probit - Interaction
-reg seconcilio i.treatment##i.p_actor gen_resid_pr `controls', vce(bootstrap, reps(1000)) cluster(fecha)
-qui su seconcilio if e(sample)
-local DepVarMean=r(mean)
-qui su p_actor if e(sample)
-local IntMean=r(mean)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") ///
-addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr)
+*3) Probit (FS)
+reg  p_actor i.treatment time_instrument `controls', vce(bootstrap, reps(1000)) cluster(fecha)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("FS Probit") keep(2.treatment 1.p_actor 2.treatment#1.p_actor time_instrument)
+
 
 	
 
@@ -149,17 +150,17 @@ foreach var of varlist time_hr2-time_hr8 {
 	gen treat_`var'=treatment*`var'
 	}
 	
-*Probit (FS)
+*4 ) Probit (FS)
 probit p_actor i.treatment i.junta time_hr2-time_hr8 `controls', r cluster(fecha)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3)   keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr time_hr2-time_hr8)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("Probit FS") dec(3) sortvar(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr time_hr2-time_hr8)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr time_hr2-time_hr8)
 
-cap drop xb
+cap drop xb gen_resid_pr8
 predict xb, xb
 *Generalized residuals
 gen gen_resid_pr8 = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/(1-normal(xb)))	
 
 *CF
-*Probit - Interaction
+*5) Probit - CF
 reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8 `controls', vce(bootstrap, reps(1000)) cluster(fecha)
 qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
