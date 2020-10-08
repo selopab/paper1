@@ -63,4 +63,19 @@ ren género genN
 gen trabajador_baseN = abs(trabajadordeconfianza-1)
 gen c_antiguedadN = fechadesalida_d - fechadeentrada_d
 
+ren reinstalación reinstN
+ren indemnizaciónconstitucional indemN
+ren salarioscaídos sal_caidosN
+ren primadeantigüedad prima_antigN
+ren horasextra hextraN
+gen rec20N = díasmonto>0
+ren primadominical prima_domN
+ren descansosemanal desc_semN
+ren descansoobligatorio desc_obN
+ren codemandasarimssinfo sarimssinfN
+ren utilidades utilidadesN
+ren nulidad nulidadN
+
+drop especifique
+tostring sueldobase, replace force
 save ".\DB\inicialesP1Faltantes_wod.dta", replace

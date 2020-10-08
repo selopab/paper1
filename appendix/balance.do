@@ -31,17 +31,17 @@ save `temp_p2'
 **************
 
 use "./DB/pilot_operation.dta" , clear
-duplicates drop folio, force
-merge m:1 folio  using ///
-	".\DB\pilot_casefiles_wod.dta", keep(1 3)
-drop _merge	
+drop renglon
 replace junta=7 if missing(junta)
+rename expediente exp
 
 *Presence employee
 replace p_actor=(p_actor==1)
 drop if tratamientoquelestoco==0
 rename tratamientoquelestoco treatment
-
+duplicates drop folio, force
+merge m:1 junta exp anio using ".\DB\inicialesP1Faltantes_wod.dta", keep(1 3) nogen
+*Presence employee
 *Homologation
 rename p_demandado p_dem
 rename p_rdemandado p_rdem
@@ -49,13 +49,50 @@ rename p_rdemandado p_rdem
 append using `temp_p2', force
 replace phase=1 if missing(phase)
 
+bysort junta exp anio: gen DuplicatesPredrop=_N
+forvalues i=1/3{
+	gen T`i'_aux=[treatment==`i'] 
+	bysort junta exp anio: egen T`i'=max(T`i'_aux)
+}
+
+gen T1T2=[T1==1 & T2==1]
+gen T1T3=[T1==1 & T3==1]
+gen T2T3=[T2==1 & T3==1]
+gen TAll=[T1==1 & T2==1 & T3==1]
+
+replace T1T2=0 if TAll==1
+replace T1T3=0 if TAll==1
+replace T2T3=0 if TAll==1
+
+*32 drops
+*drop if T1T2==1 & treatment == 1
+*46 drops
+drop if T1T3==1
+*31 drops
+drop if T2T3==1
+*8 drops
+drop if TAll==1
+
+*bysort junta exp anio: gen DuplicatesPostdrop=_N
+
+*44 drops
+*sort junta exp anio fecha
+*bysort junta exp anio: keep if _n==1
+********************************************************************************
+*Drop conciliator observations
+drop if treatment==3
+
+sort junta exp anio fecha
+by junta exp anio: gen renglon = _n
+keep if renglon==1
 
 local balance_var gen trabajador_base	horas_sem c_antiguedad abogado_pub	reinst	indem	salario_diario	sal_caidos	prima_antig	hextra	rec20  prima_dom  desc_sem  desc_ob sarimssinf utilidades nulidad min_ley p_actor p_ractor p_dem p_rdem
-
-
-drop if treatment == 3
 ************************************PHASE 1*************************************
 ********************************************************************************
+
+foreach var in gen trabajador_base	horas_sem c_antiguedad abogado_pub	reinst	indem	salario_diario	sal_caidos	prima_antig	hextra	rec20  prima_dom  desc_sem  desc_ob sarimssinf utilidades nulidad{
+	replace `var' = `var'N if missing(`var') & !missing(`var'N)
+}
 
 putexcel set ".\Tables\Balance.xlsx", sheet("Balance") modify
 orth_out `balance_var' ///
