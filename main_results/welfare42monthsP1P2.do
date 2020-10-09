@@ -260,9 +260,9 @@ gen timeTillTreat = fecha - fecha_filing
 reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su npv_wz if e(sample) & p_actor==1
-	local IntMean=r(mean)
-	qui su npv_wz if e(sample)
+	qui su npv_wz if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su npv_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
@@ -272,9 +272,9 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su asinhNPV if e(sample) & p_actor==1
-	local IntMean=r(mean)
-	qui su asinhNPV if e(sample)
+	qui su asinhNPV if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPV if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
@@ -283,20 +283,20 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su npvImputed_wz if e(sample) & p_actor==1
-	local IntMean=r(mean)
-	qui su npvImputed_wz if e(sample)
+	qui su npvImputed_wz if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su npvImputed_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) NPV winsorsized (calculator)
-reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
+reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su asinhNPVImputed if e(sample) & p_actor==1
-	local IntMean=r(mean)
-	qui su asinhNPVImputed if e(sample)
+	qui su asinhNPVImputed if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPVImputed if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
@@ -305,9 +305,9 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su asinhNPVImputed_robust if e(sample) & p_actor==1
-	local IntMean=r(mean)
-	qui su asinhNPVImputed_robust if e(sample)
+	qui su asinhNPVImputed_robust if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPVImputed_robust if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
@@ -322,9 +322,9 @@ addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntM
 reg length i.treatment i.p_actor i.treatment#i.p_actor `controls' if  length>0  & length < 2300, robust cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	qui su seconcilio if e(sample)
+	qui su length if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su length if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/durationTE.xls", replace ctitle("OLS")  ///
 	addtext(Casefile Controls, Yes, Includes settled, Yes) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///

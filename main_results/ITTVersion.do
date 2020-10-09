@@ -125,7 +125,7 @@ replace numActores = 3 if numActores>3
 	
 	*Same day conciliation
 	reg seconcilio i.treatment `controls' if treatment!=0 & phase==1, robust  cluster(fecha)
-	qui sum seconcilio if e(sample)
+	qui sum seconcilio if e(sample) & treatment == 1
 	local DepVarMean = r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", replace ctitle("Same day. P1") ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) ///
@@ -136,9 +136,9 @@ replace numActores = 3 if numActores>3
 	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==1 , robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	qui su seconcilio if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P1")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
@@ -151,7 +151,7 @@ replace numActores = 3 if numActores>3
 	
 	*Same day conciliation
 	reg seconcilio i.treatment `controls' if treatment!=0 & phase==2, robust  cluster(fecha)
-	qui su seconcilio if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
@@ -162,10 +162,10 @@ replace numActores = 3 if numActores>3
 	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==2 , robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su p_actor if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
-	qui su seconcilio if e(sample)
-	local DepVarMean=r(mean)
+	qui su seconcilio if e(sample) & treatment == 1
+	local DepVarMean=r(mean)  
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
@@ -178,15 +178,13 @@ replace numActores = 3 if numActores>3
 	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su seconcilio if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
-
-
 	
 	*Interaction employee was present PROBIT SPECIFICATION
 	probit seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
@@ -194,39 +192,19 @@ replace numActores = 3 if numActores>3
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample)
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled. Probit")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
-	
-	*2 months
-	reg convenio_2m i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
-	qui su convenio_2m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("2M. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
-	
-	*5 months
-	reg convenio_5m i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
-	qui su convenio_5m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("5M. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	*Long run
 	reg convenio_m5m i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su convenio_m5m if e(sample)
+	qui su convenio_m5m if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
+	qui su convenio_m5m if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Long Run. Pooled")  ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///

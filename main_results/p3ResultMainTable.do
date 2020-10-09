@@ -17,8 +17,15 @@ local controls mujer antiguedad salario_diario
 qui gen esample=1	
 qui gen nvals=.
 
-eststo clear	
-	
+foreach var in `depvar'	{
+	reg `var' i.calculadora `controls', robust cluster(fecha_alta)
+	qui sum `var' if main_treatment==1
+	local DepVarMean=`r(mean)'
+	outreg2 using  "./Tables/reg_results/te123_calculator_p1.xls", append ctitle("`var'")  ///
+	addstat(Dependent Variable Mean, `DepVarMean')dec(3)
+	}
+
+	/*
 foreach var in `depvar'	{	
 	eststo: reg `var' i.calculadora `controls', robust cluster(fecha_alta)
 	estadd scalar Erre=e(r2)

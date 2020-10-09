@@ -122,44 +122,20 @@ replace numActores = 3 if numActores>3
 	reg seconcilio i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su seconcilio if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/by_lawyerITT.xls", replace ctitle("Same day. Pooled") addtext(Court Dummies, Yes) ///
 	addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean', test interaction, `testInteraction') dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 
-	/*
-	*2 months
-	reg convenio_2m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
-	qui test 2.treatment + 2.treatment#1.p_actor = 0
-	local testInteraction=`r(p)'
-	qui su convenio_2m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/Table6_te_privateITT.xls", append ///
-	ctitle("2M. Pooled") addtext(Court Dummies, Yes) addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean')	///
-	dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
-	 
-	*5 months
-	reg convenio_5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
-	qui su convenio_5m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/Table6_te_privateITT.xls", append ctitle("5M. Pooled") ///
-	addtext(Court Dummies, Yes) addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean') ///
-	dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
-	*/
-	*5+ months
 	reg convenio_m5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su convenio_5m if e(sample)
+	qui su convenio_m5m if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su convenio_m5m if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/by_lawyerITT.xls", append ctitle("LR. Pooled") addtext(Court Dummies, Yes) ///
 	addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction')	dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 	
@@ -179,42 +155,21 @@ replace numActores = 3 if numActores>3
 	reg seconcilio i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su seconcilio if e(sample)
+	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/by_lawyerITT.xls", append ctitle("Same day. Pooled") addtext(Court Dummies, Yes) ///
 	addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
 
-/*	
-	*2 months
-	reg convenio_2m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
-	qui su convenio_2m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/Table6_te_publicITT.xls", append ///
-	ctitle("2M. Pooled") addtext(Court Dummies, Yes) addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
-	
-	*5 months
-	reg convenio_5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
-	qui su convenio_5m if e(sample)
-	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
-	outreg2 using  "./Tables/reg_results/Table6_te_publicITT.xls", append ctitle("5M. Pooled") ///
-	addtext(Court Dummies, Yes) addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
-*/	
 	*5+ months
 	reg convenio_m5m i.treatment##i.p_actor i.junta if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
-	qui su convenio_5m if e(sample)
+	qui su convenio_m5m if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su convenio_m5m if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-	qui su p_actor if e(sample)
-	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/by_lawyerITT.xls", append ctitle("LR. Pooled") addtext(Court Dummies, Yes) ///
 	addstat(Dependant Variable Mean,`DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
 	dec(3) keep(2.treatment 1.p_actor 2.treatment#1.p_actor )
