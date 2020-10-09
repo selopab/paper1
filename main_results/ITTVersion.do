@@ -154,7 +154,7 @@ replace numActores = 3 if numActores>3
 	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	

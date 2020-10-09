@@ -30,15 +30,12 @@ do ".\DoFiles\main_results\teByLawyer.do"
 do ".\DoFiles\main_results\te_p3_updating.do"
 
 *T6) Followup
-
 do ".\DoFiles\main_results\endMode.do"
-
 
 *T7) Recovery ammount
 do ".\DoFiles\main_results\welfare42monthsP1P2.do"
 
 *T8) P3 welfare
-
 do ".\DoFiles\main_results\P3welfare.do"
 
 *********************

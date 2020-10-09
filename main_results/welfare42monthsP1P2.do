@@ -265,7 +265,7 @@ reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(as
 	qui su npv_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 
 *2) IHS NPV (0s)
@@ -277,7 +277,7 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(
 	qui su asinhNPV if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) NPV winsorsized (calculator)
 reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
@@ -288,7 +288,7 @@ reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust
 	qui su npvImputed_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) NPV winsorsized (calculator)
 reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)
@@ -299,7 +299,7 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robu
 	qui su asinhNPVImputed if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *5) NPV winsorsized robust (calculator)
 reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
@@ -310,7 +310,7 @@ reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls
 	qui su asinhNPVImputed_robust if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 **********************************************************************************************************
 
