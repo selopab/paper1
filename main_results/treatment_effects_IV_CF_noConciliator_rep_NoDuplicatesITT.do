@@ -119,12 +119,14 @@ drop if treatment==3
 
 *1) Probit probability model
 probit  seconcilio i.treatment##i.p_actor `controls', r cluster(fecha)
+qui test 2.treatment + 2.treatment#1.p_actor = 0
+local testInteraction=`r(p)'
 qui su seconcilio if e(sample) & treatment == 1
 local DepVarMean=r(mean)
 qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 local IntMean=r(mean)
 outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("Probit Prob model") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor) ///
-addstat(DepVarMean, `DepVarMean', IntMean, `IntMean')
+addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calculator p value, `testInteraction')
 
 *2) OLS (FS)
 reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
@@ -175,5 +177,5 @@ qui su seconcilio if e(sample) & treatment == 1
 local DepVarMean=r(mean)
 qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 local IntMean=r(mean)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test_interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
  
