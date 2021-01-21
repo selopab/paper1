@@ -49,7 +49,7 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
-keep folio
+keep folio abogado_pub
 
 tempfile selectedCasefiles
 save `selectedCasefiles'

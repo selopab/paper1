@@ -5,6 +5,8 @@ Balance table on basic and strategic variables.
 
 ********************************************************************************
 
+//global balance_var trabajador_base c_antiguedad abogado_pub indem salario_diario prima_antig min_ley p_actor p_ractor p_dem p_rdem
+
 use ".\DB\scaleup_operation.dta", clear
 duplicates drop junta exp año, force
 rename año anio
@@ -86,7 +88,8 @@ sort junta exp anio fecha
 by junta exp anio: gen renglon = _n
 keep if renglon==1
 
-local balance_var gen trabajador_base	horas_sem c_antiguedad abogado_pub	reinst	indem	salario_diario	sal_caidos	prima_antig	hextra	rec20  prima_dom  desc_sem  desc_ob sarimssinf utilidades nulidad min_ley p_actor p_ractor p_dem p_rdem
+//local balance_var gen trabajador_base horas_sem c_antiguedad abogado_pub reinst indem salario_diario sal_caidos prima_antig hextra rec20  prima_dom  desc_sem  desc_ob sarimssinf utilidades nulidad min_ley p_actor p_ractor p_dem p_rdem
+local balance_var trabajador_base c_antiguedad abogado_pub indem salario_diario prima_antig min_ley p_actor p_ractor p_dem p_rdem
 ************************************PHASE 1*************************************
 ********************************************************************************
 
@@ -94,7 +97,7 @@ foreach var in gen trabajador_base	horas_sem c_antiguedad abogado_pub	reinst	ind
 	replace `var' = `var'N if missing(`var') & !missing(`var'N)
 }
 
-putexcel set ".\Tables\Balance.xlsx", sheet("Balance") modify
+putexcel set ".\Tables\Balance2.xlsx", sheet("Balance") modify
 orth_out `balance_var' ///
 			if phase==1, ///
 				by(treatment)  vce(robust)   bdec(3)  count
@@ -125,10 +128,22 @@ foreach var in `balance_var' {
 	restore
 }
 
+reg treatment `balance_var' if phase==1
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel N16 = `pval' 
+qui putexcel O16 = ("`stars'") 
+
 ************************************PHASE 2*************************************
 ********************************************************************************
-
-
 orth_out `balance_var' ///
 			if phase==2, ///
 				by(treatment)  vce(robust)   bdec(3)  count
@@ -159,6 +174,19 @@ foreach var in `balance_var' {
 	restore
 	}	
 
+reg treatment `balance_var' if phase==2
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel R16 = `pval' 
+qui putexcel S16 = ("`stars'") 
 	
 ************************************PHASE 1/2***********************************
 ********************************************************************************
@@ -193,5 +221,18 @@ foreach var in `balance_var' {
 	restore
 	
 	}	
-	
+
+reg treatment `balance_var'
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel V16 = `pval' 
+qui putexcel W16 = ("`stars'") 
 	
