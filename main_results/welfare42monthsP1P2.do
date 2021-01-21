@@ -215,6 +215,28 @@ replace npv_robust=(ganancia/(1+(${int2})/100)^months)-${pago_pub} if abogado_pu
 gen npv_robust2=npv_robust
 replace npv_robust2=(ganancia/(1+(${int2})/100)^months)*(1-${perc_pag})-${pago_pri2} if abogado_pub==0
 
+preserve
+
+keep npv
+duplicates drop
+sort npv
+gen rankingNpv = _n
+tempfile rankingNpvData
+save `rankingNpvData', replace
+restore
+
+merge m:1 npv using `rankingNpvData', gen(mNPV)
+
+#delimit ;
+graph twoway scatter npv rankingNpv if npv < 400000,
+xtitle("NPV of outcome") title("NPV of Outcomes against its ranking") ytitle("NPV ranking") 
+		scheme(s2mono) graphregion(color(white));
+#delimit cr
+graph export "./Figures/npvAgainstRanking.pdf", replace 
+
+*Predicted outcomes for continuing cases - Phase 2;
+*Graph only lower 99%;
+
 *replace npv = 0 if missing(npv) & !missing(modoTermino)
 
 gen asinhNPV = asinh(npv)
@@ -234,6 +256,44 @@ replace npvImputed=(gananciaImputed/(1+(${int})/100)^months)-${pago_pub} if abog
 gen npvImputed_robust=.
 replace npvImputed_robust=(gananciaImputed/(1+(${int2})/100)^months)*(1-${perc_pag})-${pago_pri} if abogado_pub==0
 replace npvImputed_robust=(gananciaImputed/(1+(${int2})/100)^months)-${pago_pub} if abogado_pub==1
+
+preserve
+keep npvImputed
+duplicates drop
+drop if missing(npvImputed)
+sort npvImputed
+gen rankingNpvImputed = _n
+tempfile rankingNpvData
+save `rankingNpvData', replace
+restore
+
+merge m:1 npvImputed using `rankingNpvData', gen(mNPVI)
+
+#delimit ;
+graph twoway scatter npvImputed rankingNpvImputed if npv < 400000,
+xtitle("Imputed NPV of outcome") title("Imputed NPV of Outcomes against its ranking") ytitle("Imputed NPV ranking") 
+		scheme(s2mono) graphregion(color(white));
+#delimit cr
+graph export "./Figures/imputedNpvAgainstRanking.pdf", replace 
+
+preserve
+keep npvImputed_robust
+duplicates drop
+drop if missing(npvImputed_robust)
+sort npvImputed_robust
+gen rankingNpvImputed_robust = _n
+tempfile rankingNpvData
+save `rankingNpvData', replace
+restore
+
+merge m:1 npvImputed_robust using `rankingNpvData', gen(mNPVI_robust)
+
+#delimit ;
+graph twoway scatter npvImputed_robust rankingNpvImputed if npv < 400000,
+xtitle("Imputed NPV of outcome") title("Imputed NPV of Outcomes against its ranking") ytitle("Imputed NPV ranking") 
+		scheme(s2mono) graphregion(color(white));
+#delimit cr
+graph export "./Figures/imputedNpvRobustAgainstRanking.pdf", replace 
 
 *replace npvImputed = 0 if missing(npv) & !missing(modoTermino)
 
@@ -264,7 +324,7 @@ reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(as
 	local IntMean=r(mean) 
 	qui su npv_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 
@@ -276,7 +336,7 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(
 	local IntMean=r(mean) 
 	qui su asinhNPV if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) NPV winsorsized (calculator)
@@ -287,7 +347,7 @@ reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust
 	local IntMean=r(mean) 
 	qui su npvImputed_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) NPV winsorsized (calculator)
@@ -298,7 +358,7 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robu
 	local IntMean=r(mean) 
 	qui su asinhNPVImputed if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *5) NPV winsorsized robust (calculator)
@@ -309,12 +369,85 @@ reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls
 	local IntMean=r(mean) 
 	qui su asinhNPVImputed_robust if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
-outreg2 using ".\Tables\reg_results\welfateEffectsP12.xls", append ctitle("asinhNPVImputed") ///
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
 addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
+*6) Column 2 without interactions
+reg asinhNPV i.treatment `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
+	qui su asinhNPV if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles)
 **********************************************************************************************************
 
+*****************************
+*	Ranking regressions 	*
+*****************************
 
+*1) NPV winsorsized (0s)
+
+reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
+	qui su npv_wz if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su npv_wz if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+
+
+*2) IHS NPV (0s)
+reg rankingNpv i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
+	qui su asinhNPV if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPV if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls" if !missing(asinhNPVImputed), append ctitle("NPV Ranking") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+
+*3) NPV winsorsized (calculator)
+reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
+	qui su npvImputed_wz if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su npvImputed_wz if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls", append ctitle("asinhNPVImputed") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+
+*4) NPV winsorsized (calculator)
+reg rankingNpvImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
+	qui su asinhNPVImputed if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPVImputed if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls", append ctitle("Imputed NPV Ranking") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+
+*5) NPV winsorsized robust (calculator)
+reg rankingNpvImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
+	qui test 2.treatment + 2.treatment#1.p_actor = 0
+	local testInteraction=`r(p)'
+	qui su asinhNPVImputed_robust if e(sample) & treatment == 1 & p_actor == 1
+	local IntMean=r(mean) 
+	qui su asinhNPVImputed_robust if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls", append ctitle("Robust NPV ranking") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+
+*6) Column 2 without interactions
+reg rankingNpv i.treatment `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
+	qui su asinhNPV if e(sample) & treatment == 1
+	local DepVarMean=r(mean)
+outreg2 using ".\Tables\reg_results\welfareEffectsP12_ranking.xls" if !missing(asinhNPVImputed), append ctitle("NPV Ranking") ///
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles)
+/*
 *****************************
 *	Duration regressions 	*
 *****************************
