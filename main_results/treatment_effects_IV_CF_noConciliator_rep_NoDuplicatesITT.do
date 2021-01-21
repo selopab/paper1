@@ -7,6 +7,9 @@ Column (9)
 
 *Set controls.
 local controls i.anio i.junta i.phase i.numActores
+//local balance_var gen trabajador_base horas_sem c_antiguedad abogado_pub reinst indem salario_diario sal_caidos prima_antig hextra rec20  prima_dom  desc_sem desc_ob sarimssinf utilidades nulidad min_ley 
+local balance_var trabajador_base c_antiguedad abogado_pub indem salario_diario prima_antig min_ley 
+//p_actor p_ractor p_dem p_rdem
 
 use "./DB/scaleup_operation.dta", clear
 rename año anio
@@ -31,8 +34,7 @@ format fecha %td
 gen time_hearing=substr(horario_aud,strpos(horario_aud," "),length(horario_aud))
 egen time_hr=group(time_hearing)
 
-keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-	time_hearing time_hr numActores
+keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub time_hearing time_hr numActores `balance_var'
 gen phase=2
 tempfile p2
 save `p2'
@@ -51,8 +53,7 @@ rename expediente exp
 gen time_hearing=substr(horarioaudiencia,strpos(horarioaudiencia," "),length(horarioaudiencia))
 egen time_hr=group(time_hearing)
 
-keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub ///
-	time_hearing time_hr numActores
+keep seconcilio convenio_2m convenio_5m fecha junta exp anio fecha treatment p_actor abogado_pub time_hearing time_hr numActores `balance_var'
 append using `p2'
 replace phase=1 if missing(phase)
 
@@ -101,11 +102,30 @@ drop if treatment==3
 replace anio = 2010 if anio < 2010
 replace numActores = 3 if numActores>3
 
-********************************************************************************
-********************************************************************************
-********************************************************************************
-*REGRESSIONS
-*
+replace convenio_2m=seconcilio if seconcilio==1
+
+//replace convenio_5m=convenio_2m if missing(convenio_5m)
+replace convenio_5m=convenio_2m if convenio_2m==1
+
+replace modo_termino_expediente=3 if missing(modo_termino_expediente) & convenio_m5m==1
+//replace modo_termino_expediente = modoTermino if missing(modo_termino_expediente) | [modo_termino_expediente == 3 & !missing(modoTermino)]
+replace modo_termino_expediente=2 if missing(modo_termino_expediente)
+
+//replace modo_termino_expediente = modoTermino  if missing(modo_termino_expediente)
+
+replace modoTermino = modo_termino_expediente if missing(modoTermino)
+
+
+//replace convenio_m5m=convenio_5m if missing(convenio_m5m)
+replace convenio_m5m=convenio_5m if convenio_5m==1
+replace convenio_m5m = 1 if modoTermino == 3
+replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
+
+replace convenio_m5m = . if modoTermino == 5
+replace seconcilio = . if modoTermino == 5
+
+
 *Instrument
 gen time_instrument=inlist(time_hr,1,2,7,8) if !missing(time_hr) 
 gen time_actor=time_instrument*p_actor
@@ -113,12 +133,164 @@ gen time_actor=time_instrument*p_actor
 gen treat_inst=treatment*time_instrument
 gen treat_p_actor=treatment*p_actor
 
+********************************************************************************
+********************************************************************************
+*Balance Tables
 
+*Balance Tables
+
+putexcel set ".\Tables\balanceTime2.xlsx", sheet("Balance") modify
+
+orth_out `balance_var' if phase==1, by(time_instrument)  vce(robust)   bdec(3)  count
+				
+qui putexcel L5=matrix(r(matrix)) 
+		
+local i=5
+foreach var in `balance_var' {
+		
+	*1 vs 2
+	preserve
+	local stars = ""
+	qui ttest `var' if phase==1, by(time_instrument) unequal		
+	local vp=round(r(p),.01)
+	qui putexcel N`i'=(`vp') 
+	if `vp' < .1 {
+		local stars = "*"
+	}
+	if `vp' < .05 {
+		local stars = "**"
+	}
+	if `vp' < .01 {
+		local stars = "***"
+	}
+	qui putexcel O`i'=("`stars'") 
+	local i=`i'+1
+	restore
+}
+
+reg time_instrument `balance_var' if phase==1
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel N12 = `pval' 
+qui putexcel O12 = ("`stars'") 
+
+************************************PHASE 2*************************************
+********************************************************************************
+orth_out `balance_var' ///
+			if phase==2, ///
+				by(time_instrument)  vce(robust)   bdec(3)  count
+				
+qui putexcel P5=matrix(r(matrix)) 
+		
+local i=5
+foreach var in `balance_var' {
+		
+	*1 vs 2
+	preserve	
+	local stars = ""
+	qui ttest `var' if phase==2, by(time_instrument) unequal	
+	local vp=round(r(p),.01)
+	qui putexcel R`i'=(`vp') 
+	if `vp' < .1 {
+		local stars = "*"
+	}
+	if `vp' < .05 {
+		local stars = "**"
+	}
+	if `vp' < .01 {
+		local stars = "***"
+	}
+	qui putexcel S`i'=("`stars'") 
+	local i=`i'+1
+	restore
+	}	
+
+reg time_instrument `balance_var' if phase==2
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel R12 = `pval' 
+qui putexcel S12 = ("`stars'") 
+	
+************************************PHASE 1/2***********************************
+********************************************************************************
+
+
+orth_out `balance_var' if treatment!=3,  ///
+				by(time_instrument)  vce(robust)   bdec(3)  count
+				
+qui putexcel T5=matrix(r(matrix)) 
+		
+local i=5
+foreach var in `balance_var' {
+		
+	*1 vs 2
+	preserve	
+	local stars = ""
+	qui ttest `var', by(time_instrument) unequal		
+	local vp=round(r(p),.01)
+	qui putexcel V`i'=(`vp') 
+	if `vp' < .1 {
+		local stars = "*"
+	}
+	if `vp' < .05 {
+		local stars = "**"
+	}
+	if `vp' < .01 {
+		local stars = "***"
+	}
+	qui putexcel W`i'=("`stars'") 
+	local i=`i'+1
+	restore
+	
+	}	
+
+reg time_instrument `balance_var'
+local pval = Ftail(e(df_m), e(df_r), e(F))
+	if `pval' < .1 {
+		local stars = "*"
+	}
+	if `pval' < .05 {
+		local stars = "**"
+	}
+	if `pval' < .01 {
+		local stars = "***"
+	} 
+qui putexcel V12 = `pval' 
+qui putexcel W12 = ("`stars'") 
+
+********************************************************************************
+*REGRESSIONS
+*
+/*
+
+global controls i.anio i.junta i.phase i.numActores
+replace treatment  = treatment -1
+ivregress 2sls seconcilio treatment $controls (1.p_actor 1.p_actor#1.treatment = 1.time_instrument 1.time_instrument#1.treatment), first
+
+*/
 *Drop conciliator observations
 drop if treatment==3
+gen altT = treatment-1
+gen interactT = altT*p_actor
 
 *1) Probit probability model
-probit  seconcilio i.treatment##i.p_actor `controls', r cluster(fecha)
+reg  seconcilio i.treatment##i.p_actor `controls', r cluster(fecha)
 qui test 2.treatment + 2.treatment#1.p_actor = 0
 local testInteraction=`r(p)'
 qui su seconcilio if e(sample) & treatment == 1
@@ -170,6 +342,11 @@ gen gen_resid_pr8 = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/
 
 *CF
 *5) Probit - CF
+ritest altT _b[altT] _b[interactT], reps(1000) seed(125): reg seconcilio p_actor altT interactT `controls' gen_resid_pr8 if phase==1, robust  cluster(fecha)
+matrix pvalues=r(p)
+local pvalNoInteract = pvalues[1,1]
+local pvalInteract = pvalues[1,2]
+
 reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8 `controls', vce(bootstrap, reps(1000)) cluster(fecha)
 qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
@@ -177,5 +354,5 @@ qui su seconcilio if e(sample) & treatment == 1
 local DepVarMean=r(mean)
 qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 local IntMean=r(mean)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test_interaction,`testInteraction') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
+outreg2 using "./Tables/reg_results/CF_ITT.xls", append ctitle("CF Probit") addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', test_interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor gen_resid_pr8)
  

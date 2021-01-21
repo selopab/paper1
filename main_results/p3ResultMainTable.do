@@ -17,12 +17,19 @@ local controls mujer antiguedad salario_diario
 qui gen esample=1	
 qui gen nvals=.
 
+gen altT = calculadora-1
+
+
 foreach var in `depvar'	{
+	ritest altT _b[altT], reps(1000) seed(125): reg `var' altT `controls', robust cluster(fecha_alta)
+	matrix pvalues=r(p) 
+	local pvalNoInteract = pvalues[1,1]
+
 	reg `var' i.calculadora `controls', robust cluster(fecha_alta)
 	qui sum `var' if main_treatment==1
 	local DepVarMean=`r(mean)'
 	outreg2 using  "./Tables/reg_results/te123_calculator_p1.xls", append ctitle("`var'")  ///
-	addstat(Dependent Variable Mean, `DepVarMean')dec(3)
+	addstat(Dependent Variable Mean, `DepVarMean', pvalueRI, `pvalNoInteract')dec(3)
 	}
 
 	/*

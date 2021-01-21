@@ -39,9 +39,9 @@ append using `temp_p2'
 replace phase=1 if missing(phase)
 
 
-merge m:1 junta exp anio using ".\DB\seguimiento_m5m.dta", keep(1 3)
+merge m:1 junta exp anio using ".\DB\seguimiento_m5m.dta", keep(1 3) 
 merge m:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
-
+gen modoTermino2 = modoTermino
 bysort junta exp anio: gen DuplicatesPredrop=_N
 forvalues i=1/3{
 	gen T`i'_aux=[treatment==`i'] 

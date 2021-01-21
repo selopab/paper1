@@ -7,7 +7,8 @@ Columns (1)-(8)
 ********************************************************************************
 
 *Set controls.
-local controls i.anio i.junta i.phase i.numActores
+timer on 1
+local controls i.anioControl i.junta i.phase i.numActores
 
 use ".\DB\scaleup_operation.dta", clear
 rename año anio
@@ -101,39 +102,65 @@ keep if renglon==1
 merge 1:1 junta exp anio using ".\DB\seguimiento_m5m.dta", nogen keep(1 3)
 merge 1:1 junta exp anio using ".\Terminaciones\Data\followUps2020.dta", gen(merchados) keep(1 3)
 
-
 *Settlement
-replace convenio_2m=seconcilio if missing(convenio_2m)
+//replace convenio_2m=seconcilio if missing(convenio_2m) & seconcilio==1
 replace convenio_2m=seconcilio if seconcilio==1
 
-replace convenio_5m=convenio_2m if missing(convenio_5m)
+//replace convenio_5m=convenio_2m if missing(convenio_5m)
 replace convenio_5m=convenio_2m if convenio_2m==1
 
-replace convenio_m5m=convenio_5m if missing(convenio_m5m)
+replace modo_termino_expediente=3 if missing(modo_termino_expediente) & convenio_m5m==1
+//replace modo_termino_expediente = modoTermino if missing(modo_termino_expediente) | [modo_termino_expediente == 3 & !missing(modoTermino)]
+replace modo_termino_expediente=2 if missing(modo_termino_expediente)
+
+//replace modo_termino_expediente = modoTermino  if missing(modo_termino_expediente)
+
+replace modoTermino = modo_termino_expediente if missing(modoTermino)
+
+
+//replace convenio_m5m=convenio_5m if missing(convenio_m5m)
 replace convenio_m5m=convenio_5m if convenio_5m==1
 replace convenio_m5m = 1 if modoTermino == 3
-//replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
+replace convenio_m5m = 0 if modoTermino != 3 & !missing(modoTermino)
 replace seconcilio = 0 if modoTermino != 3 & !missing(modoTermino)
 
-replace anio = 2010 if anio < 2010
-replace numActores = 3 if numActores>3
+replace convenio_m5m = . if modoTermino == 5
+replace seconcilio = . if modoTermino == 5
 
+gen anioControl = anio
+replace anioControl = 2010 if anio < 2010
+replace numActores = 3 if numActores>3
+gen altT = treatment-1
+gen interactT = altT*p_actor
 
 	*********************************
 	*			PHASE 1				*
-	*********************************
+	********************************* 
 	
 	*Same day conciliation
-	reg seconcilio i.treatment `controls' if treatment!=0 & phase==1, robust  cluster(fecha)
+	preserve
+	keep if phase == 1
+	tempfile resampling1
+	ritest altT _b[altT], reps(1000) seed(125) strata(fecha) saveresampling("./_aux/sampleP1.dta"): reg seconcilio altT `controls' if phase==1, robust cluster(fecha) 
+	matrix pvalues=r(p) 
+	local pvalNoInteract = pvalues[1,1]
+
+	qui reg seconcilio i.treatment `controls' if treatment!=0 & phase==1, robust  cluster(fecha)
 	qui sum seconcilio if e(sample) & treatment == 1
 	local DepVarMean = r(mean)
+
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", replace ctitle("Same day. P1") ///
 	addtext(Court Dummies, Yes, Casefile Controls, No) keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) ///
-	addstat(Dependent Variable Mean, `DepVarMean')  dec(3)
+	addstat(Dependent Variable Mean, `DepVarMean', pvalueRI, `pvalNoInteract')  dec(3)
 
 
 	*Interaction employee was present
-	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==1 , robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor],samplingsourcefile("./_aux/sampleP1.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls' if phase==1, robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
+	qui reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==1 , robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
@@ -141,25 +168,37 @@ replace numActores = 3 if numActores>3
 	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P1")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean', test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
-
+restore
 	
 	*********************************
 	*			PHASE 2				*
 	*********************************
-	
+	preserve
 	*Same day conciliation
-	reg seconcilio i.treatment `controls' if treatment!=0 & phase==2, robust  cluster(fecha)
+	keep if phase == 2
+	ritest altT _b[altT], reps(1000) seed(125) strata(fecha) saveresampling("./_aux/sampleP2.dta"): reg seconcilio altT `controls' if phase==2, robust  cluster(fecha)
+	matrix pvalues=r(p) 
+	local pvalNoInteract = pvalues[1,1]
+
+	
+
+	qui reg seconcilio i.treatment `controls' if treatment!=0 & phase==2, robust  cluster(fecha)
 	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', pvalueRI, `pvalNoInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
 	
 	*Interaction employee was present
-	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==2 , robust  cluster(fecha)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/sampleP2.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls' if phase==2, robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
+	qui reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==2 , robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
@@ -167,15 +206,25 @@ replace numActores = 3 if numActores>3
 	qui su seconcilio if e(sample) & treatment == 1
 	local DepVarMean=r(mean)  
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. P2")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
-	
+	restore
 	*********************************
 	*			POOLED				*
 	*********************************
-	
+	preserve
+	use "./_aux/sampleP1.dta", clear
+	append using "./_aux/sampleP2.dta"
+	save "./_aux/samplePooled.dta"
+	restore
+
 	*Interaction employee was present
-	reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
+	qui reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample) & treatment == 1
@@ -183,11 +232,16 @@ replace numActores = 3 if numActores>3
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 	
 	*Interaction employee was present PROBIT SPECIFICATION
-	probit seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): probit seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
+	qui probit seconcilio i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample)
@@ -195,11 +249,16 @@ replace numActores = 3 if numActores>3
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled. Probit")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
 
 	*Long run
-	reg convenio_m5m i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): reg convenio_m5m c.altT##c.p_actor  `controls', robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
+	qui reg convenio_m5m i.treatment##i.p_actor `controls' if treatment!=0, robust  cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su convenio_m5m if e(sample) & treatment == 1
@@ -207,9 +266,10 @@ replace numActores = 3 if numActores>3
 	qui su convenio_m5m if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Long Run. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction') ///
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
 
-
+timer off 1
+timer list 1
 
 	
