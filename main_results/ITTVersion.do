@@ -5,7 +5,8 @@ This table estimates the main treatment effects  (ITT) for both experimental pha
 Columns (1)-(8)
 */
 ********************************************************************************
-
+clear all
+set maxvar 32767
 *Set controls.
 timer on 1
 local controls i.anioControl i.junta i.phase i.numActores
@@ -137,15 +138,16 @@ gen interactT = altT*p_actor
 	*			PHASE 1				*
 	********************************* 
 	
+
 	*Same day conciliation
 	preserve
 	keep if phase == 1
 	tempfile resampling1
-	ritest altT _b[altT], reps(1000) seed(125) strata(fecha) saveresampling("./_aux/sampleP1.dta"): reg seconcilio altT `controls' if phase==1, robust cluster(fecha) 
+	ritest altT _b[altT], reps(10000) seed(125) strata(fecha) saveresampling("./_aux/sampleP1.dta"): areg seconcilio altT `controls', abs(fecha) robust cluster(fecha) 
 	matrix pvalues=r(p) 
 	local pvalNoInteract = pvalues[1,1]
 
-	qui reg seconcilio i.treatment `controls' if treatment!=0 & phase==1, robust  cluster(fecha)
+	qui areg seconcilio i.treatment `controls' if treatment!=0 & phase==1,abs(fecha) robust  cluster(fecha)
 	qui sum seconcilio if e(sample) & treatment == 1
 	local DepVarMean = r(mean)
 
@@ -155,12 +157,12 @@ gen interactT = altT*p_actor
 
 
 	*Interaction employee was present
-	ritest altT _b[altT] _b[c.altT#c.p_actor],samplingsourcefile("./_aux/sampleP1.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls' if phase==1, robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor],samplingsourcefile("./_aux/sampleP1.dta") samplingmatchvar(junta exp anio) reps(10000): areg seconcilio c.altT##c.p_actor  `controls' if phase==1, robust  cluster(fecha) abs(fecha)
 	matrix pvalues=r(p)
 	local pvalNoInteract = pvalues[1,1]
 	local pvalInteract = pvalues[1,2]
 
-	qui reg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==1 , robust  cluster(fecha)
+	qui areg seconcilio i.treatment##i.p_actor `controls' if treatment!=0 & phase==1 , robust  cluster(fecha) abs(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
@@ -177,8 +179,10 @@ restore
 	*********************************
 	preserve
 	*Same day conciliation
+	egen p2cluster = group(junta fecha)
+
 	keep if phase == 2
-	ritest altT _b[altT], reps(1000) seed(125) strata(fecha) saveresampling("./_aux/sampleP2.dta"): reg seconcilio altT `controls' if phase==2, robust  cluster(fecha)
+	ritest altT _b[altT], reps(10000) seed(125) strata(fecha) saveresampling("./_aux/sampleP2.dta"): reg seconcilio altT `controls' if phase==2, robust  cluster(fecha)
 	matrix pvalues=r(p) 
 	local pvalNoInteract = pvalues[1,1]
 
@@ -193,7 +197,7 @@ restore
 
 	
 	*Interaction employee was present
-ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/sampleP2.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls' if phase==2, robust  cluster(fecha)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/sampleP2.dta") samplingmatchvar(junta exp anio) reps(10000): reg seconcilio c.altT##c.p_actor  `controls' if phase==2, robust  cluster(fecha)
 	matrix pvalues=r(p)
 	local pvalNoInteract = pvalues[1,1]
 	local pvalInteract = pvalues[1,2]
@@ -212,14 +216,16 @@ ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/sampleP2.d
 	*********************************
 	*			POOLED				*
 	*********************************
+	//
 	preserve
 	use "./_aux/sampleP1.dta", clear
 	append using "./_aux/sampleP2.dta"
-	save "./_aux/samplePooled.dta"
+	save "./_aux/samplePooled2.dta"
 	restore
+	*/
 
 	*Interaction employee was present
-ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): reg seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled2.dta") samplingmatchvar(junta exp anio) reps(10000): reg seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
 	matrix pvalues=r(p)
 	local pvalNoInteract = pvalues[1,1]
 	local pvalInteract = pvalues[1,2]
@@ -232,11 +238,10 @@ ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePool
 	qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 	local IntMean=r(mean)
 	outreg2 using  "./Tables/reg_results/treatment_effectsITT.xls", append ctitle("Same day. Pooled")  ///
-	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') ///
-	keep(2.treatment 1.p_actor 2.treatment#1.p_actor ) dec(3)
+	addtext(Court Dummies, Yes, Casefile Controls, No) addstat(Dependent Variable Mean, `DepVarMean', Interaction Mean,`IntMean',test interaction,`testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,`pvalInteract') keep(2.treatment 1.p_actor 2.treatment#1.p_actor) dec(3)
 	
 	*Interaction employee was present PROBIT SPECIFICATION
-	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): probit seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled2.dta") samplingmatchvar(junta exp anio) reps(10000): probit seconcilio c.altT##c.p_actor  `controls', robust  cluster(fecha)
 	matrix pvalues=r(p)
 	local pvalNoInteract = pvalues[1,1]
 	local pvalInteract = pvalues[1,2]
@@ -253,7 +258,7 @@ ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePool
 	keep(2.treatment 1.p_actor 2.treatment#1.p_actor )	dec(3)
 
 	*Long run
-	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(1000): reg convenio_m5m c.altT##c.p_actor  `controls', robust  cluster(fecha)
+	ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled2.dta") samplingmatchvar(junta exp anio) reps(10000): reg convenio_m5m c.altT##c.p_actor  `controls', robust  cluster(fecha)
 	matrix pvalues=r(p)
 	local pvalNoInteract = pvalues[1,1]
 	local pvalInteract = pvalues[1,2]

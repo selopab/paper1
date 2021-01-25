@@ -14,10 +14,11 @@ global pago_pri2=0		/* Payment to private lawyer (Robustness)*/
 global courtcollect=1.0 /* Recovery / Award ratio for court judgments */
 global winsorize=95 	/* winsorize level for NPV levels */
 
-local controls i.abogado_pub i.numActores i.anio i.phase i.junta
+local controls i.abogado_pub i.numActores i.anioControl i.phase i.junta
 //local imputedControls i.tipodeabogadoImputed
 ********************************************************************************
-
+clear all
+set maxvar 30000
 use ".\DB\scaleup_operation.dta", clear
 rename año anio
 rename expediente exp
@@ -302,7 +303,8 @@ gen asinhNPVImputed_robust = asinh(npvImputed_robust)
 replace numActores = 0 if missing(numActores)
 replace numActores=1 if numActores==0
 replace numActores=3 if numActores>3 & numActores~=.
-replace anio=2010 if anio<2010
+gen anioControl = anio
+replace anioControl = 2010 if anio < 2010
 
 for var npv npvImputed: gen X_wz=X
 for var npv npvImputed: egen X_wz_WZ=pctile(X), p(${winsorize})
@@ -313,9 +315,15 @@ gen ratioGananciaConvenio = ganancia/liq_total_convenio
 gen length=fechaTermino-fecha_filing
 gen timeTillTreat = fecha - fecha_filing
 
+gen altT = treatment-1
+gen interactT = altT*p_actor
 
 *********************************************************************************
 *1) NPV winsorsized (0s)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg npv_wz c.altT##c.p_actor  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
 
 reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
@@ -325,10 +333,15 @@ reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(as
 	qui su npv_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), replace ctitle("asinhNPV") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 
 *2) IHS NPV (0s)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg asinhNPV c.altT##c.p_actor  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
 reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
@@ -337,9 +350,14 @@ reg asinhNPV i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(
 	qui su asinhNPV if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *3) NPV winsorsized (calculator)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg npvImputed_wz c.altT##c.p_actor  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
 reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
@@ -348,9 +366,14 @@ reg npvImputed_wz i.treatment i.p_actor i.treatment#i.p_actor `controls', robust
 	qui su npvImputed_wz if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calcPVal, `testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *4) NPV winsorsized (calculator)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg asinhNPVImputed c.altT##c.p_actor  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
 reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
@@ -359,9 +382,14 @@ reg asinhNPVImputed i.treatment i.p_actor i.treatment#i.p_actor `controls', robu
 	qui su asinhNPVImputed if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *5) NPV winsorsized robust (calculator)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg asinhNPVImputed_robust c.altT##c.p_actor  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+	local pvalInteract = pvalues[1,2]
+
 reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls', robust cluster(fecha)	
 	qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
@@ -370,20 +398,24 @@ reg asinhNPVImputed_robust i.treatment i.p_actor i.treatment#i.p_actor `controls
 	qui su asinhNPVImputed_robust if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls", append ctitle("asinhNPVImputed") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean',calcPVal, `testInteraction', pvalueRI, `pvalNoInteract', pvalueRIInteraction,  `pvalInteract') keep(2.treatment missingCasefiles 1.p_actor 2.treatment#1.p_actor)
 
 *6) Column 2 without interactions
+ritest altT _b[altT], samplingsourcefile("./_aux/samplePooled4.dta") samplingmatchvar(junta exp anio) reps(10000): reg asinhNPV  `controls'  if !missing(asinhNPVImputed), robust  cluster(fecha)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
+
 reg asinhNPV i.treatment `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	
 	qui su asinhNPV if e(sample) & treatment == 1
 	local DepVarMean=r(mean)
 outreg2 using ".\Tables\reg_results\welfareEffectsP12.xls" if !missing(asinhNPVImputed), append ctitle("asinhNPV") ///
-addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean') keep(2.treatment missingCasefiles)
+addtext(Casefile Controls, Yes) addstat(DepVarMean, `DepVarMean', pvalueRI, `pvalNoInteract') keep(2.treatment missingCasefiles)
 **********************************************************************************************************
 
 *****************************
 *	Ranking regressions 	*
 *****************************
-
+/*
 *1) NPV winsorsized (0s)
 
 reg npv_wz i.treatment i.p_actor i.treatment#i.p_actor `controls' if !missing(asinhNPVImputed), robust cluster(fecha)	

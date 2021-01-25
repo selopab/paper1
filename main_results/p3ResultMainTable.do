@@ -18,10 +18,15 @@ qui gen esample=1
 qui gen nvals=.
 
 gen altT = calculadora-1
+bysort fecha_alta: egen minT = min(altT)
+bysort fecha_alta: egen maxT = max(altT)
+gen indicadora = minT != maxT
+
+drop if indicadora == 1
 
 
 foreach var in `depvar'	{
-	ritest altT _b[altT], reps(1000) seed(125): reg `var' altT `controls', robust cluster(fecha_alta)
+	ritest altT _b[altT], reps(10000) cluster(fecha_alta) seed(125): reg `var' altT `controls', robust cluster(fecha_alta)
 	matrix pvalues=r(p) 
 	local pvalNoInteract = pvalues[1,1]
 

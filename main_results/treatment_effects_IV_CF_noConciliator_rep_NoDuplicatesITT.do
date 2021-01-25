@@ -4,9 +4,10 @@ We add a control for potential endogeneity of the presence of the employee
 Column (9)
 */
 ********************************************************************************
-
+clear all 
+set maxvar 30000
 *Set controls.
-local controls i.anio i.junta i.phase i.numActores
+local controls i.anioControl i.junta i.phase i.numActores
 //local balance_var gen trabajador_base horas_sem c_antiguedad abogado_pub reinst indem salario_diario sal_caidos prima_antig hextra rec20  prima_dom  desc_sem desc_ob sarimssinf utilidades nulidad min_ley 
 local balance_var trabajador_base c_antiguedad abogado_pub indem salario_diario prima_antig min_ley 
 //p_actor p_ractor p_dem p_rdem
@@ -99,7 +100,8 @@ keep if renglon==1
 *Drop conciliator observations
 drop if treatment==3
 
-replace anio = 2010 if anio < 2010
+gen anioControl = anio
+replace anioControl = 2010 if anio < 2010
 replace numActores = 3 if numActores>3
 
 replace convenio_2m=seconcilio if seconcilio==1
@@ -136,7 +138,7 @@ gen treat_p_actor=treatment*p_actor
 ********************************************************************************
 ********************************************************************************
 *Balance Tables
-
+/*
 *Balance Tables
 
 putexcel set ".\Tables\balanceTime2.xlsx", sheet("Balance") modify
@@ -273,17 +275,11 @@ local pval = Ftail(e(df_m), e(df_r), e(F))
 	} 
 qui putexcel V12 = `pval' 
 qui putexcel W12 = ("`stars'") 
-
+*/
 ********************************************************************************
 *REGRESSIONS
 *
-/*
 
-global controls i.anio i.junta i.phase i.numActores
-replace treatment  = treatment -1
-ivregress 2sls seconcilio treatment $controls (1.p_actor 1.p_actor#1.treatment = 1.time_instrument 1.time_instrument#1.treatment), first
-
-*/
 *Drop conciliator observations
 drop if treatment==3
 gen altT = treatment-1
@@ -297,8 +293,7 @@ qui su seconcilio if e(sample) & treatment == 1
 local DepVarMean=r(mean)
 qui su seconcilio if e(sample) & treatment == 1 & p_actor == 1
 local IntMean=r(mean)
-outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("Probit Prob model") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor) ///
-addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calculator p value, `testInteraction')
+outreg2 using "./Tables/reg_results/CF_ITT.xls", replace ctitle("Probit Prob model") dec(3)  keep(2.treatment 1.p_actor 2.treatment#1.p_actor) addstat(DepVarMean, `DepVarMean', IntMean, `IntMean', calculator p value, `testInteraction')
 
 *2) OLS (FS)
 reg p_actor i.treatment time_instrument `controls', r cluster(fecha)
@@ -342,12 +337,12 @@ gen gen_resid_pr8 = cond(p_actor == 1, normalden(xb)/normal(xb), -normalden(xb)/
 
 *CF
 *5) Probit - CF
-ritest altT _b[altT] _b[interactT], reps(1000) seed(125): reg seconcilio p_actor altT interactT `controls' gen_resid_pr8 if phase==1, robust  cluster(fecha)
+ritest altT _b[altT] _b[c.altT#c.p_actor], samplingsourcefile("./_aux/samplePooled.dta") samplingmatchvar(junta exp anio) reps(10000): reg seconcilio c.altT##c.p_actor `controls' gen_resid_pr8 if phase==1, robust  cluster(fecha)
 matrix pvalues=r(p)
 local pvalNoInteract = pvalues[1,1]
 local pvalInteract = pvalues[1,2]
 
-reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8 `controls', vce(bootstrap, reps(1000)) cluster(fecha)
+reg seconcilio i.treatment##i.p_actor i.junta  gen_resid_pr8 `controls', vce(bootstrap, reps(10000)) cluster(fecha)
 qui test 2.treatment + 2.treatment#1.p_actor = 0
 	local testInteraction=`r(p)'
 qui su seconcilio if e(sample) & treatment == 1

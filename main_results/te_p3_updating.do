@@ -6,7 +6,7 @@
 		 
 use ".\DB\treatment_data.dta", clear
 merge 1:1 id_actor using ".\DB\survey_data_2m.dta", keep(3)
-keep if main_treatment != 3
+keep if !missing(main_treatment) & main_treatment != 3
 
 *****************************      PROBABILITY      ****************************
 
@@ -28,8 +28,13 @@ qui gen nvals=.
 
 local depvar bajo_inm_prob_d  bajo_inm_prob bajo_inm_quant_d bajo_inm_quant
 local controls mujer antiguedad salario_diario
+gen altT = main_treatment - 1
 
+bysort fecha_alta: egen minT = min(altT)
+bysort fecha_alta: egen maxT = max(altT)
+gen indicadora = minT != maxT
 
+drop if indicadora == 1
 
 *****************************
 *       REGRESSIONS         *
@@ -38,6 +43,10 @@ local controls mujer antiguedad salario_diario
 eststo clear
 
 foreach var in `depvar'	{
+
+	ritest altT _b[altT], reps(10000) seed(125) cluster(fecha_alta):  reg `var' altT `controls', robust cluster(fecha_alta)
+	matrix pvalues=r(p)
+	local pvalNoInteract = pvalues[1,1]
 	
 	eststo: reg `var' i.main_treatment `controls', robust cluster(fecha_alta)
 	estadd scalar Erre=e(r2)
@@ -56,12 +65,12 @@ foreach var in `depvar'	{
 		local obs_`i'=r(N)
 		}
 	estadd local days_per_gr="`obs_1'/`obs_2'"
-	
+	estadd scalar pvalNoInteract = `pvalNoInteract'	
 	}
 	
 	
 	*************************
 	esttab using "./Tables/reg_results/te_updating.csv", se star(* 0.1 ** 0.05 *** 0.01) b(3) se(3) ///
-	scalars("Erre R-squared" "BVC BVC" "Source Source" "obs_per_gr Obs per group" "days_per_gr Days per group" "test_23 T2=T3") replace 
+	scalars("Erre R-squared" "BVC BVC" "Source Source" "obs_per_gr Obs per group" "days_per_gr Days per group" "test_23 T2=T3" "pvalNoInteract pvalNoInteract") replace 
 	
 	
